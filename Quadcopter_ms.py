@@ -255,7 +255,7 @@ Q = np.diag([
 R = 0.1
 R = R*np.diag(np.ones(nu))
 
-# Define the stage cost and terminal cost
+# Define the stage cost and terminal cost test
 stage_cost = 0.5 *( bilin(Q, x) +  bilin(R, u))
 terminal_cost = 40*mtimes(x.T, x)
 
