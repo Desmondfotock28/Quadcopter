@@ -255,7 +255,7 @@ Q = np.diag([
 R = 0.1
 R = R*np.diag(np.ones(nu))
 
-# Define the stage cost and terminal cost test
+# Define the stage cost and terminal cost 
 stage_cost = 0.5 *( bilin(Q, x) +  bilin(R, u))
 terminal_cost = 40*mtimes(x.T, x)
 
@@ -298,7 +298,7 @@ def equality_constraints():
 
 def inequality_constraints():
     
-    hu = []   # Box constraints on active inputs
+    hu = []   # Box constraints on active inputs 
     for i in range(N):
         hu.append(lb_u - U[:, i]) 
         hu.append(U[:, i] - ub_u)
