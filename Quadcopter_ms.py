@@ -422,7 +422,7 @@ def run_closed_loop_mpc(x0, Tr, Ts, sim_time, solver):
     u_cl = np.array(u_cl)
     return x_ol, u_cl, t, cost , time_full, U_open_loop
 
-# Run the closed-loop MPC
+# Run the closed-loop MPC for 10s
 Ts = 0.3
 sim_time = 10
 x_ol, u_cl, t, cost_n, time_full,U_open_loop = run_closed_loop_mpc(x0, Tr, Ts, sim_time, pisolver)
