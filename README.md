@@ -1,4 +1,4 @@
-# Quadrotor Formation using NonLinear Model Predictive Control
+# Nonlinear Model Predictive Control Formulation for a Quadrotor
 
 ## Install Acados
 To build Acados from source, see instructions [here](https://docs.acados.org/python_interface/index.html) or as follows:
