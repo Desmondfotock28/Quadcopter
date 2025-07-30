@@ -35,7 +35,7 @@ export ACADOS_SOURCE_DIR="<acados_root>"
 ## Quadcopter Dynamics 
 <div align="center">
   <img src="https://github.com/Desmondfotock28/Quadcopter/blob/main/model.PNG?raw=true" alt="F450 Quadcopter 3d Model" height="300"><br>
-  <sub><b>Figure:</b> F450 Quadcopter 3D Model</sub>
+  <sub><b>Figure1:</b> F450 Quadcopter 3D Model</sub>
 </div>
 
 # PID Controller Design for F450 Quadcopter System
