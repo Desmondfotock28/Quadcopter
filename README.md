@@ -32,3 +32,4 @@ Add two paths below to ```~/.bashrc``` in order to add the compiled shared libra
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:"<acados_root>/lib"
 export ACADOS_SOURCE_DIR="<acados_root>"
 ```
+## Quadcopter Dynamics 
