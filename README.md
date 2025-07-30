@@ -33,6 +33,9 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:"<acados_root>/lib"
 export ACADOS_SOURCE_DIR="<acados_root>"
 ```
 ## Quadcopter Dynamics 
-![Quadrotor](Quadcopter/model.PNG)
+<div align="center">
+  <img src="https://github.com/Desmondfotock28/Quadcopter/blob/main/model.PNG" alt="F450 Quadcopter 3d Model" height="300">
+</div>
+
 
 # PID Controller Design for F450 Quadcopter System
