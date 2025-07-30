@@ -45,5 +45,7 @@ The F450 quadcopter is a versatile platform well-suited for both control system 
   <img src="https://github.com/Desmondfotock28/Quadcopter/blob/main/dynamics.jpg?raw=true" alt="F450 Quadcopter Dynamics" height="300"><br>
   <sub><b>Figure2:</b>Quadcopter F450 body frames and coordinate system used</sub>
 </div>
+The symbols **B** and **E** represent the **body-fixed frame** and the **earth-inertial frame**, respectively. The linear position vector in the earth-inertial frame, along the x, y, and z axes, is defined as:
 
+**r_E = [ x, y, z ]ᵀ**  (1)
 # PID Controller Design for F450 Quadcopter System
