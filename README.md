@@ -33,3 +33,4 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:"<acados_root>/lib"
 export ACADOS_SOURCE_DIR="<acados_root>"
 ```
 ## Quadcopter Dynamics 
+# PID Controller Design for F450 Quadcopter System
