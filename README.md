@@ -1,4 +1,4 @@
-# Nonlinear Model Predictive Control Formulation for a Quadrotor
+# Nonlinear Model Predictive Control Formulation for a Quadcopter
 
 ## Install Acados
 To build Acados from source, see instructions [here](https://docs.acados.org/python_interface/index.html) or as follows:
