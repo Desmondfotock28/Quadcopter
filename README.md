@@ -43,7 +43,7 @@ The F450 quadcopter is a versatile platform well-suited for both control system 
 ## Dynamics
 <div align="center">
   <img src="https://github.com/Desmondfotock28/Quadcopter/blob/main/dynamics.jpg?raw=true" alt="F450 Quadcopter Dynamics" height="300"><br>
-  <sub><b>Figure1:</b>Quadcopter F450 body frames and coordinate system used</sub>
+  <sub><b>Figure2:</b>Quadcopter F450 body frames and coordinate system used</sub>
 </div>
 
 # PID Controller Design for F450 Quadcopter System
