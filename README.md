@@ -78,4 +78,4 @@ $m \ddot{\boldsymbol{\xi}} = \mathbf{G} + \mathbf{R} \mathbf{T}_B $
 \cos\theta \cos\phi
 \end{bmatrix}
 
-# PID Controller Design for F450 Quadcopter System
+
