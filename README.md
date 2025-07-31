@@ -60,4 +60,7 @@ Using Newton 2nd Law of linear Dynamics
 
 $m\dot{v}_B \times \omega_B(mv_B) \=mgR^T + T_B $
 
+Using Newton 2nd Law of rotational Dynamics 
+$J^B\dot{omega}_B \=-(\omega_B \times J^B\omega_B) + T_B -\tau_B$
+$R = R(\phi,z)*R(\theta ,y)*R(\psi,x)$
 # PID Controller Design for F450 Quadcopter System
