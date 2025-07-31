@@ -46,7 +46,7 @@ The F450 quadcopter is a versatile platform well-suited for both control system 
   <sub><b>Figure2:</b> Quadcopte F450 body frames and coordinate system used</sub>
 </div>
 The quadcopter state space is described between the earth inertial frame $E$ and body fixed frame $B$ respectively.The linear position
-vector of the earth inertial frame axis x,y,z is defined with 
-$`\xi = \left[\begin{array}{cccc}p_{EB} & q_{EB} & v_{EB} & \omega_{B}\end{array}\right]^T`$
+vector of the earth inertial frame axis x,y,z is defined with:
+\dot{p}=v;\\
 
 # PID Controller Design for F450 Quadcopter System
