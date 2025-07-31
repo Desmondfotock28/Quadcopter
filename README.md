@@ -60,7 +60,8 @@ In the inertial frame, the centrifugal force is nullified. Thus, only the gravit
 
 
 ```math
-m\ddot{\boldsymbol{\xi}} = \mathbf{G} + \mathbf{R} \mathbf{T}_B 
+m\ddot{\boldsymbol{\xi}} = \mathbf{G} + \mathbf{R} \mathbf{T}_B
+
 \begin{bmatrix}
 \ddot{x} \\
 \ddot{y} \\
