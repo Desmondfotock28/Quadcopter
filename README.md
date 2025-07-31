@@ -51,4 +51,8 @@ The absolute linear position of the quadcopter is defined in the inertial frame 
 
 $\xi = \[x, y , z]^T$ ; $\eta = \[\phi, \theta, \psi]^T$ ; $q =\ [\xi , \eta]^T$
 
+The quadcopter is assumed to be rigid body and thus Newton-Euler equations can be used to describe its dynamics. In the body frame, the force required for the acceleration of mass $m \dot{V}_B$ and the centrifugal force $ \nu \times (mV_B) $ are equal to the gravity $R^T G$ and the total thrust of the rotos $T_B$
+
+$m\dot{V}_B + \nu \times (mV_B) =\ R^TG + T_B$
+
 # PID Controller Design for F450 Quadcopter System
