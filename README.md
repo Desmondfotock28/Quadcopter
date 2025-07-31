@@ -42,7 +42,7 @@ The F450 quadcopter is a versatile platform well-suited for both control system 
 
 ## Dynamics
 <div align="center">
-  <img src="https://github.com/Desmondfotock28/Quadcopter/blob/main/dynamics_model.jpg?raw=true" alt="F450 Quadcopter_Dynamics" height="300"><br>
+  <img src="https://github.com/Desmondfotock28/Quadcopter/blob/main/dynamic_model.jpg?raw=true" alt="F450 Quadcopter_Dynamics" height="300"><br>
   <sub><b>Figure2:</b> The inertial and body frames of a quadcopter</sub>
 </div>
 
