@@ -59,8 +59,7 @@ In the inertial frame, the centrifugal force is nullified. Thus, only the gravit
 
 $m \ddot{\boldsymbol{\xi}} = \mathbf{G} + \mathbf{R} \mathbf{T}_B $
 
-\[
-\begin{bmatrix}
+$\begin{bmatrix}
 \ddot{x} \\
 \ddot{y} \\
 \ddot{z}
@@ -77,6 +76,6 @@ $m \ddot{\boldsymbol{\xi}} = \mathbf{G} + \mathbf{R} \mathbf{T}_B $
 \sin\psi \sin\theta \cos\phi - \cos\psi \sin\phi \\
 \cos\theta \cos\phi
 \end{bmatrix}
-\]
+$
 
 # PID Controller Design for F450 Quadcopter System
