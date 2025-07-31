@@ -47,6 +47,7 @@ The F450 quadcopter is a versatile platform well-suited for both control system 
 </div>
 
 The quadcopter state space is described between the earth inertial frame $E$ and body fixed frame $B$, as $`\xi = \left[\begin{array}{cccc}p_{E} & q_{E} & v_{B} & \omega_{B}\end{array}\right]^T`$ corresponding to position $`p_{E} ∈ \mathbb{R}^3`$, $`q_{E} ∈ \mathbb{R}^3`$ correspond to the Euler angles, $`v_{B} ∈ \mathbb{R}^3`$ reprsent the linear velocity and lastly  $`\omega_{B} ∈ \mathbb{R}^3`$ is the angular velocity.
+ $`u =\left[T_1, T_2, T_3, T_4\right]^T`$
 
 
 
