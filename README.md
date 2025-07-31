@@ -46,7 +46,9 @@ The F450 quadcopter is a versatile platform well-suited for both control system 
   <sub><b>Figure2:</b> The inertial and body frames of a quadcopter</sub>
 </div>
 The quadcopter structure is presented in Figure  including the corresponding angular velocities, torques and forces created by the four rotors (numbered from 1 to 4).
-The absolute linear position of the quadcopter is defined in the inertial frame x,y,z axes with $\xi$ 
+
+The absolute linear position of the quadcopter is defined in the inertial frame x,y,z axes with 
+
 state space is described between the earth inertial frame $E$ and body fixed frame $B$, as $`\xi = \left[\begin{array}{cccc}p_{E} & q_{E} & v_{B} & \omega_{B}\end{array}\right]^T`$ corresponding to position $`p_{E} ∈ \mathbb{R}^3`$, $`q_{E} ∈ \mathbb{R}^3`$ correspond to the Euler angles, $`v_{B} ∈ \mathbb{R}^3`$ reprsent the linear velocity and lastly  $`\omega_{B} ∈ \mathbb{R}^3`$ is the angular velocity.
 
 # PID Controller Design for F450 Quadcopter System
