@@ -41,6 +41,11 @@ export ACADOS_SOURCE_DIR="<acados_root>"
 The F450 quadcopter is a versatile platform well-suited for both control system design and vision-based navigation research. In this project, we explore advanced control strategies specifically Nonlinear Model Predictive Control (NMPC) and PID controllers to enable precise trajectory tracking under dynamic flight conditions. Building upon this control foundation, we further integrate visual SLAM (Simultaneous Localization and Mapping) using an Intel RealSense camera mounted on the drone. This fusion of control and perception aims to enable the quadcopter to navigate autonomously in GPS-denied environments, with potential applications in inspection, search and rescue, and exploration. The project combines simulation and real-world experimentation to validate the effectiveness of the proposed control and perception pipeline.
 
 ## Dynamics
+<div align="center">
+  <img src="https://github.com/Desmondfotock28/Quadcopter/blob/main/dynamics_model.jpg?raw=true" alt="F450 Quadcopter_Dynamics" height="300"><br>
+  <sub><b>Figure2:</b> The inertial and body frames of a quadcopter</sub>
+</div>
+
 The quadcopter state space is described between the earth inertial frame $E$ and body fixed frame $B$, as $`\xi = \left[\begin{array}{cccc}p_{E} & q_{E} & v_{B} & \omega_{B}\end{array}\right]^T`$ corresponding to position $`p_{E} ∈ \mathbb{R}^3`$, $`q_{E} ∈ \mathbb{R}^3`$ correspond to the Euler angles, $`v_{B} ∈ \mathbb{R}^3`$ reprsent the linear velocity and lastly  $`\omega_{B} ∈ \mathbb{R}^3`$ is the angular velocity.
 
  $`p_{E} =\left[x, y, z\right]^T`$
