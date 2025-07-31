@@ -57,9 +57,10 @@ $m\dot{V}_B + \nu \times (mV_B) =\ R^TG + T_B$
 
 In the inertial frame, the centrifugal force is nullified. Thus, only the gravitational force and the magnitude and direction of the thrust are contributing in the acceleration of the quadcopter
 
-$m \ddot{\boldsymbol{\xi}} = \mathbf{G} + \mathbf{R} \mathbf{T}_B $
+
 
 ```math
+m\ddot{\boldsymbol{\xi}} = \mathbf{G} + \mathbf{R} \mathbf{T}_B 
 \begin{bmatrix}
 \ddot{x} \\
 \ddot{y} \\
