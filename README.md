@@ -45,25 +45,8 @@ The F450 quadcopter is a versatile platform well-suited for both control system 
   <img src="https://github.com/Desmondfotock28/Quadcopter/blob/main/dynamic_model.jpg?raw=true" alt="F450 Quadcopter_Dynamics" height="300"><br>
   <sub><b>Figure2:</b> The inertial and body frames of a quadcopter</sub>
 </div>
+The quadcopter structure is presented in Figure  including the corresponding angular velocities, torques and forces created by the four rotors (numbered from 1 to 4).
+The absolute linear position of the quadcopter is defined in the inertial frame x,y,zaxes with $`\xi'$ 
 
-The quadcopter state space is described between the earth inertial frame $E$ and body fixed frame $B$, as $`\xi = \left[\begin{array}{cccc}p_{E} & q_{E} & v_{B} & \omega_{B}\end{array}\right]^T`$ corresponding to position $`p_{E} ∈ \mathbb{R}^3`$, $`q_{E} ∈ \mathbb{R}^3`$ correspond to the Euler angles, $`v_{B} ∈ \mathbb{R}^3`$ reprsent the linear velocity and lastly  $`\omega_{B} ∈ \mathbb{R}^3`$ is the angular velocity.
-
- $`p_{E} =\left[x, y, z\right]^T`$
- 
- $`q_{E} =\left[\psi, \phi, \theta \right]^T`$
- 
- $`v_{B} =\left[u, v, w\right]^T`$
- 
- $`\omega_{B} =\left[\dot{\psi}, \dot{\phi}, \dot{\theta} \right]^T`$
- 
-Using Newton 2nd Law of linear Dynamics 
-
-$m\dot{v}_B \times \omega_B(mv_B) \=mgR^T + T_B $
-
-Using Newton 2nd Law of rotational Dynamics 
-
-$J^B \dot{\omega}_B \=-(\omega_B \times J^B\omega_B) + T_B -\tau_B$
-
-$R = R(\phi,z)*R(\theta ,y)*R(\psi,x)$
 
 # PID Controller Design for F450 Quadcopter System
