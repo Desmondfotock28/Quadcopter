@@ -58,6 +58,6 @@ The quadcopter state space is described between the earth inertial frame $E$ and
  
 Using Newton 2nd Law of linear Dynamics 
 
-$m\dot{v}_B \times \omega_B(mv_B) \=gR^T + T_B $
+$m\dot{v}_B \times \omega_B(mv_B) \=mgR^T + T_B $
 
 # PID Controller Design for F450 Quadcopter System
