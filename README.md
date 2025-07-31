@@ -49,5 +49,5 @@ The quadcopter structure is presented in Figure  including the corresponding ang
 
 The absolute linear position of the quadcopter is defined in the inertial frame x,y,z axes with $\mathbf{\xi}$. The attitude, i.e. the angular position, is defined in the inertial frame with three Euler angles $\eta$. Vector $\boldsymbol{q}$ contains the linear and angular position vectors.
 
-T=\left[\begin{array}{c}0\\0\\\sum{T_i}\end{array}\right]
+$T=\left[\begin{array}{c}0\\0\\\sum{T_i}\end{array}\right]$
 # PID Controller Design for F450 Quadcopter System
