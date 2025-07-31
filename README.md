@@ -47,10 +47,10 @@ The F450 quadcopter is a versatile platform well-suited for both control system 
 </div>
 
 The quadcopter state space is described between the earth inertial frame $E$ and body fixed frame $B$, as $`\xi = \left[\begin{array}{cccc}p_{E} & q_{E} & v_{B} & \omega_{B}\end{array}\right]^T`$ corresponding to position $`p_{E} ∈ \mathbb{R}^3`$, $`q_{E} ∈ \mathbb{R}^3`$ correspond to the Euler angles, $`v_{B} ∈ \mathbb{R}^3`$ reprsent the linear velocity and lastly  $`\omega_{B} ∈ \mathbb{R}^3`$ is the angular velocity.
- $`p_{E} =\left[x, y, z\right]^T`$
- $`q_{E} =\left[\phi, \psi, \theta \right]^T`$
- $`v_{B} =\left[u, v, w\right]^T`$
- $`\omega_{B} =\left[\dot{\phi}, \dot{\psi}, \dot{\theta} \right]^T`$
+ $`p_{E} =\left[x, y, z\right]^T`$\\
+ $`q_{E} =\left[\psi, \phi, \theta \right]^T`$\\
+ $`v_{B} =\left[u, v, w\right]^T`$ \\
+ $`\omega_{B} =\left[\dot{\psi}, \dot{\phi}, \dot{\theta} \right]^T`$
 
 
 # PID Controller Design for F450 Quadcopter System
