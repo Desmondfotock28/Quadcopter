@@ -108,3 +108,29 @@ I\dot{\boldsymbol{\nu}} + \boldsymbol{\nu} \times (I\boldsymbol{\nu}) + \boldsym
   + \boldsymbol{\tau}
 \right)
 ```
+```math
+\begin{bmatrix}
+\ddot{\phi} \\
+\ddot{\theta} \\
+\ddot{\psi}
+\end{bmatrix}
+=
+\begin{bmatrix}
+\frac{(I_{yy} - I_{zz})\dot{\theta} \dot{\psi}}{I_{xx}} \\
+\frac{(I_{zz} - I_{xx})\dot{\phi} \dot{\psi}}{I_{yy}} \\
+\frac{(I_{xx} - I_{yy})\dot{\phi} \dot{\theta}}{I_{zz}}
+\end{bmatrix}
+- I_r
+\begin{bmatrix}
+\frac{\dot{\theta}}{I_{xx}} \\
+-\frac{\dot{\phi}}{I_{yy}} \\
+0
+\end{bmatrix}
+\omega_\Gamma
++
+\begin{bmatrix}
+\frac{\tau_\phi}{I_{xx}} \\
+\frac{\tau_\theta}{I_{yy}} \\
+\frac{\tau_\psi}{I_{zz}}
+\end{bmatrix}
+```
