@@ -73,6 +73,7 @@ The linear and angular components do not depend on each other thus they can be s
 ```math
 f = RT_B = m \ddot{\xi} + mg \begin{bmatrix} 0 \\ 0 \\ 1 \end{bmatrix}
 ```
+The Jacobian matrix \(J(\eta)\) from \(\nu\) to \(\dot{\eta}\) is
 
 
 
