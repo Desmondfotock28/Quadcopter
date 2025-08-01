@@ -171,7 +171,7 @@ The nonlinear state-space dynamics combine translational and rotational dynamics
 ```
 with 
 ```math
-\mathbf{x} = 
+\mathrm{x} = 
 \begin{bmatrix}
 x & y & z & \dot{x} & \dot{y} & \dot{z} & \phi & \theta & \psi & \dot{\phi} & \dot{\theta} & \dot{\psi}
 \end{bmatrix}^T
