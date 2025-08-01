@@ -51,32 +51,9 @@ The absolute linear position of the quadcopter is defined in the inertial frame 
 
 $\xi = \[x, y , z]^T$ ; $\eta = \[\phi, \theta, \psi]^T$ ; $q =\ [\xi , \eta]^T$
 
-The quadcopter is assumed to be rigid body and thus Newton-Euler equations can be used to describe its dynamics. In the body frame, the force required for the acceleration of mass $m \dot{V}_B$ and the centrifugal force $\nu \times (mV_B)$ are equal to the gravity $R^T G$ and the total thrust of the rotos $T_B$
-
-$m\dot{V}_B + \nu \times (mV_B) =\ R^TG + T_B$
-
-In the inertial frame, the centrifugal force is nullified. Thus, only the gravitational force and the magnitude and direction of the thrust are contributing in the acceleration of the quadcopter
-
-
-$m\ddot{\boldsymbol{\xi}} = \mathbf{G} + \mathbf{R} \mathbf{T}_B$
-
-```math
-\begin{bmatrix}
-\ddot{x} \\
-\ddot{y} \\
-\ddot{z}
-\end{bmatrix}
-= -g
-\begin{bmatrix}
-0 \\
-0 \\
-1
-\end{bmatrix}
-+ \frac{T}{m}
-\begin{bmatrix}
-\cos\psi \sin\theta \cos\phi + \sin\psi \sin\phi \\
-\sin\psi \sin\theta \cos\phi - \cos\psi \sin\phi \\
-\cos\theta \cos\phi
-\end{bmatrix}
+The Lagrangian $\mathcal{L}$ is the sum of the translational energy $E_{\text{trans}}$ and rotational energy $E_{\text{rot}}$ minus the potential energy $E_{\text{pot}}$:
+\[
+\mathcal{L} = E_{\text{trans}} + E_{\text{rot}} - E_{\text{pot}}
+\]
 
 
