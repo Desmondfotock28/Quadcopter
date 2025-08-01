@@ -167,7 +167,7 @@ The lift constant is $k$, the drag constant is $b$ and the inertia moment of the
 ### State Equations
 The nonlinear state-space dynamics combine translational and rotational dynamics:
 ```math
-\dot{x} = f(x,u)
+\dot{\mathrm{x}} = f(\mathrm{x},u)
 ```
 with 
 ```math
