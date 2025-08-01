@@ -68,8 +68,11 @@ f \\
 \end{bmatrix}
 =
 \frac{d}{dt} \left( \frac{\partial L}{\partial \dot{q}} \right) - \frac{\partial L}{\partial q}
-
-
+```
+The linear and angular components do not depend on each other thus they can be studied separately. The linear external force is the total thrust of the rotors. The linear Euler-Lagrange equations are
+```math
+f = RT_B = m \ddot{\xi} + mg \begin{bmatrix} 0 \\ 0 \\ 1 \end{bmatrix}
+```
 
 
 
