@@ -85,3 +85,26 @@ In the body frame, the angular acceleration of the inertia $I \dot{\nu}$ , the c
 ```math
 I\dot{\boldsymbol{\nu}} + \boldsymbol{\nu} \times (I\boldsymbol{\nu}) + \boldsymbol{\Gamma} = \boldsymbol{\tau}
 ```
+```math
+\dot{\boldsymbol{\nu}} = \mathbf{I}^{-1} \left(
+  -\begin{bmatrix}
+    \dot{\phi} \\ \dot{\theta} \\ \dot{\psi}
+  \end{bmatrix}
+  \times
+  \begin{bmatrix}
+    I_{xx} \dot{\phi} \\
+    I_{yy} \dot{\theta} \\
+    I_{zz} \dot{\psi}
+  \end{bmatrix}
+  - I_r
+  \begin{bmatrix}
+    \dot{\phi} \\ \dot{\theta} \\ \dot{\psi}
+  \end{bmatrix}
+  \times
+  \begin{bmatrix}
+    0 \\ 0 \\ 1
+  \end{bmatrix}
+  \omega_\Gamma
+  + \boldsymbol{\tau}
+\right)
+```
