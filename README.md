@@ -74,6 +74,11 @@ The linear and angular components do not depend on each other thus they can be s
 f = RT_B = m \ddot{\xi} + mg \begin{bmatrix} 0 \\ 0 \\ 1 \end{bmatrix}
 ```
 The Jacobian matrix $J(\eta)$ from $\nu$ to $\dot{\eta}$ is
-
-
+```math
+J(\eta) = J = W_\eta^T I W_\eta =
+\begin{bmatrix}
+I_{xx} & 0 & -I_{xx} \sin\theta \\
+0 & I_{yy} \cos^2 \phi + I_{zz} \sin^2 \phi & (I_{yy} - I_{zz}) \cos \phi \sin \phi \cos \theta \\
+- I_{xx} \sin \theta & (I_{yy} - I_{zz}) \cos \phi \sin \phi \cos \theta & I_{xx} \sin^2 \theta + I_{yy} \sin^2 \phi \cos^2 \theta + I_{zz} \cos^2 \phi \cos^2 \theta
+\end{bmatrix}
 
