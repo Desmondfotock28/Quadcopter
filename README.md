@@ -175,4 +175,8 @@ with
 \begin{bmatrix}
 x & y & z & \dot{x} & \dot{y} & \dot{z} & \phi & \theta & \psi & \dot{\phi} & \dot{\theta} & \dot{\psi}
 \end{bmatrix}^T
+
+\begin{bmatrix}
+\omega_1^2 & \omega_2^2 & \omega_3^2 & \omega_4^2
+\end{bmatrix}^T
 ```
