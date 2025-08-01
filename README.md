@@ -51,9 +51,9 @@ The absolute linear position of the quadcopter is defined in the inertial frame 
 
 $\xi = \[x, y , z]^T$ ; $\eta = \[\phi, \theta, \psi]^T$ ; $q =\ [\xi , \eta]^T$
 
-The Lagrangian $\mathcal{L}$ is the sum of the translational energy $E_{\text{trans}}$ and rotational energy $E_{\text{rot}}$ minus the potential energy $E_{\text{pot}}$:
-\[
-\mathcal{L} = E_{\text{trans}} + E_{\text{rot}} - E_{\text{pot}}
-\]
+The Lagrangian $\mathcal{L}$ is the sum of the translational energy
+
+$E_{\text{trans}}$ and rotational energy $E_{\text{rot}}$ minus the potential energy $E_{\text{pot}}$.
+
 
 
