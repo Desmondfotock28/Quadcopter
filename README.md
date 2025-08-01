@@ -59,7 +59,7 @@ The Lagrangian $\mathcal{L}$ is the sum of the translational energy $E_{\text{tr
 \mathcal{L}(q, \dot{q}) = E_{\text{trans}} + E_{\text{rot}} - E_{\text{pot}}\\
 
 = \frac{m}{2} \dot{\boldsymbol{\xi}}^T \dot{\boldsymbol{\xi}} + \frac{1}{2} \boldsymbol{\nu}^T \mathbf{I} \boldsymbol{\nu} - mgz
-
+```
 The Euler-Lagrange equations with external forces and torques are
 
 
