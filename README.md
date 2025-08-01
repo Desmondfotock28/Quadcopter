@@ -163,4 +163,4 @@ T
 ```math
 \tau_{M_i} = b \, \omega_i^2 + I_M \, \dot{\omega}_i
 ```
-in which the lift constant is $k$, the drag constant is $b$ and the inertia moment of the rotor is $I_M$. Usually the effect of $dot{\omega}_i$ is considered small and thus it is omitted.  $l$ is the distance between the rotor and the center of mass of the quadcopter. 
+The lift constant is $k$, the drag constant is $b$ and the inertia moment of the rotor is $I_M$. Usually the effect of $\dot{\omega}_i$ is considered small and thus it is omitted.  $l$ is the distance between the rotor and the center of mass of the quadcopter. 
