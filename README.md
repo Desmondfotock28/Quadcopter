@@ -48,16 +48,17 @@ The F450 quadcopter is a versatile platform well-suited for both control system 
 The quadcopter structure is presented in Figure  including the corresponding angular velocities, torques and forces created by the four rotors (numbered from 1 to 4).
 
 The absolute linear position of the quadcopter is defined in the inertial frame x,y,z axes with $\mathbf{\xi}$. The attitude, i.e. the angular position, is defined in the inertial frame with three Euler angles $\eta$. Vector $\boldsymbol{q}$ contains the linear and angular position vectors.
-
-$\xi = \[x, y , z]^T$ ; $\eta = \[\phi, \theta, \psi]^T$ ; $q =\ [\xi , \eta]^T$
-
+```math
+\xi = \[x, y , z]^T$ ; $\eta = \[\phi, \theta, \psi]^T$ ; $q =\ [\xi , \eta]^T
+```
+### Newton-Euler equations
 The quadcopter is assumed to be rigid body and thus Newton-Euler equations can be used to describe its dynamics. In the body frame, the force required for the acceleration of mass $m \dot{V}_B$ and the centrifugal force $\nu \times (mV_B)$ are equal to the gravity $R^T G$ and the total thrust of the rotos $T_B$
-
-$m\dot{V}_B + \nu \times (mV_B) =\ R^TG + T_B$
-
+```math
+m\dot{V}_B + \nu \times (mV_B) =\ R^TG + T_B
+```
 In the inertial frame, the centrifugal force is nullified. Thus, only the gravitational force and the magnitude and direction of the thrust are contributing in the acceleration of the quadcopter
 
-### Newton-Euler equations
+
 ```math
 m\ddot{\boldsymbol{\xi}} = \mathbf{G} + \mathbf{R} \mathbf{T}_B
 ```
