@@ -134,3 +134,33 @@ I\dot{\boldsymbol{\nu}} + \boldsymbol{\nu} \times (I\boldsymbol{\nu}) + \boldsym
 \frac{\tau_\psi}{I_{zz}}
 \end{bmatrix}
 ```
+in which $\omega_\Gamma = \omega_1 - \omega_2 + \omega_3 - \omega_4$
+```math
+\boldsymbol{\tau}_B =
+\begin{bmatrix}
+\tau_\phi \\
+\tau_\theta \\
+\tau_\psi
+\end{bmatrix}
+=
+\begin{bmatrix}
+l k (-\omega_2^2 + \omega_4^2) \\
+l k (-\omega_1^2 + \omega_3^2) \\
+\sum_{i=1}^{4} \tau_{M_i}
+\end{bmatrix}
+```
+```math
+T = \sum_{i=1}^{4} f_i = k \sum_{i=1}^{4} \omega_i^2
+```
+```math
+\mathbf{T}_B =
+\begin{bmatrix}
+0 \\
+0 \\
+T
+\end{bmatrix}
+```
+```math
+\tau_{M_i} = b \, \omega_i^2 + I_M \, \dot{\omega}_i
+```
+in which the lift constant is $k$, the drag constant is $b$ and the inertia moment of the rotor is $I_M$. Usually the effect of $dot{\omega}_i$ is considered small and thus it is omitted.  $l$ is the distance between the rotor and the center of mass of the quadcopter. 
