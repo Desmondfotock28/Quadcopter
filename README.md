@@ -54,7 +54,7 @@ $\xi = \[x, y , z]^T$ ; $\eta = \[\phi, \theta, \psi]^T$ ; $q =\ [\xi , \eta]^T$
 ### Euler-Lagrange equations
 The Lagrangian $\mathcal{L}$ is the sum of the translational energy $E_{\text{trans}}$ and rotational energy $E_{\text{rot}}$ minus the potential energy $E_{\text{pot}}$.
 ```math
-\mathcal{L}(q, \dot{q}) = E_{\text{trans}} + E_{\text{rot}} - E_{\text{pot}}
+\mathcal{L}(q, \dot{q}) = E_{\text{trans}} + E_{\text{rot}} - E_{\text{pot}}\\
 
 = \frac{m}{2} \dot{\boldsymbol{\xi}}^T \dot{\boldsymbol{\xi}} + \frac{1}{2} \boldsymbol{\nu}^T \mathbf{I} \boldsymbol{\nu} - mgz
 
