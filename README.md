@@ -178,6 +178,6 @@ x & y & z & \dot{x} & \dot{y} & \dot{z} & \phi & \theta & \psi & \dot{\phi} & \d
 
 \mathbf{u} = 
 \begin{bmatrix}
-T_1 & T_2 & T_3 & T_4
+f_1 & f_2 & f_3 & f_4
 \end{bmatrix}^T
 ```
