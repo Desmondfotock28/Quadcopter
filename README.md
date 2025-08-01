@@ -81,4 +81,37 @@ I_{xx} & 0 & -I_{xx} \sin\theta \\
 0 & I_{yy} \cos^2 \phi + I_{zz} \sin^2 \phi & (I_{yy} - I_{zz}) \cos \phi \sin \phi \cos \theta \\
 - I_{xx} \sin \theta & (I_{yy} - I_{zz}) \cos \phi \sin \phi \cos \theta & I_{xx} \sin^2 \theta + I_{yy} \sin^2 \phi \cos^2 \theta + I_{zz} \cos^2 \phi \cos^2 \theta
 \end{bmatrix}
+```
+Thus, the rotational energy  $E_{\text{rot}}$ can be expressed in the inertial frame as
+```math
+E_{\text{rot}} = \frac{1}{2} \nu^T I \nu = \frac{1}{2} \dot{\eta}^T J \dot{\eta}
+```
+The external angular force is the torques of the rotors. The angular Euler-Lagrange equations are
+```math
+\tau = \tau_B = J \ddot{\eta} + \frac{d}{dt}(J) \dot{\eta} - \frac{1}{2} \frac{\partial}{\partial \eta} \left( \dot{\eta}^T J \dot{\eta} \right) = J \ddot{\eta} + C(\eta, \dot{\eta}) \dot{\eta}
+```
+in which the matrix $C(\eta, \dot{\eta})$ is the Coriolis term, containing the gyroscopic and centripetal terms.
 
+The matrix  $C(\eta, \dot{\eta})$ has the form
+```math
+C(\eta, \dot{\eta}) =
+\begin{bmatrix}
+C_{11} & C_{21} & C_{31} \\
+C_{12} & C_{22} & C_{32} \\
+C_{13} & C_{23} & C_{33}
+\end{bmatrix}
+```
+```math
+\begin{aligned}
+C_{11} &= 0 \\
+C_{12} &= (I_{yy} - I_{zz}) \big(\dot{\theta} \cos \phi \sin \phi + \dot{\psi} \sin^2 \phi \cos \theta \big) + (I_{zz} - I_{yy}) \dot{\psi} \cos^2 \phi \cos \theta - I_{xx} \dot{\psi} \cos \theta \\
+C_{13} &= (I_{zz} - I_{yy}) \dot{\psi} \cos \phi \sin \phi \cos^2 \theta \\
+C_{21} &= (I_{zz} - I_{yy}) \big(\dot{\theta} \cos \phi \sin \phi + \dot{\psi} \sin \phi \cos \theta \big) + (I_{yy} - I_{zz}) \dot{\psi} \cos^2 \phi \cos \theta + I_{xx} \dot{\psi} \cos \theta \\
+C_{22} &= (I_{zz} - I_{yy}) \dot{\phi} \cos \phi \sin \phi \\
+C_{23} &= -I_{xx} \dot{\psi} \sin \theta \cos \theta + I_{yy} \dot{\psi} \sin^2 \phi \sin \theta \cos \theta + I_{zz} \dot{\psi} \cos^2 \phi \sin \theta \cos \theta \\
+C_{31} &= (I_{yy} - I_{zz}) \dot{\psi} \cos^2 \theta \sin \phi \cos \phi - I_{xx} \dot{\theta} \cos \theta \\
+C_{32} &= (I_{zz} - I_{yy}) \big(\dot{\theta} \cos \phi \sin \phi \sin \theta + \dot{\phi} \sin^2 \phi \cos \theta \big) + (I_{yy} - I_{zz}) \dot{\phi} \cos^2 \phi \cos \theta \\
+& \quad + I_{xx} \dot{\psi} \sin \theta \cos \theta - I_{yy} \dot{\psi} \sin^2 \phi \sin \theta \cos \theta - I_{zz} \dot{\psi} \cos^2 \phi \sin \theta \cos \theta \\
+C_{33} &= (I_{yy} - I_{zz}) \dot{\phi} \cos \phi \sin \phi \cos^2 \theta - I_{yy} \dot{\theta} \sin^2 \phi \cos \theta \sin \theta - I_{zz} \dot{\theta} \cos^2 \phi \cos \theta \sin \theta + I_{xx} \dot{\theta} \cos \theta \sin \theta
+\end{aligned}
+```
