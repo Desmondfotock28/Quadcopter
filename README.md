@@ -81,5 +81,7 @@ m\ddot{\boldsymbol{\xi}} = \mathbf{G} + \mathbf{R} \mathbf{T}_B
 \cos\theta \cos\phi
 \end{bmatrix}
 ```
-In the body frame, the angular acceleration of the inertia $I \nu$ , the centripetal forces $\nu \times (I\nu)$ and the gyroscopic forces $\Gamma$ are equal to the external torque $\tau$
-
+In the body frame, the angular acceleration of the inertia $I \dot{\nu}$ , the centripetal forces $\nu \times (I\nu)$ and the gyroscopic forces $\Gamma$ are equal to the external torque $\tau$
+```math
+I\dot{\boldsymbol{\nu}} + \boldsymbol{\nu} \times (I\boldsymbol{\nu}) + \boldsymbol{\Gamma} = \boldsymbol{\tau}
+```
