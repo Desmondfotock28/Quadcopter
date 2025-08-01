@@ -51,67 +51,34 @@ The absolute linear position of the quadcopter is defined in the inertial frame 
 
 $\xi = \[x, y , z]^T$ ; $\eta = \[\phi, \theta, \psi]^T$ ; $q =\ [\xi , \eta]^T$
 
-The origin of the body frame is in the center of mass of the quadcopter. In the body frame, the linear velocities are determined by $V_B$ and the angular velocities by $\nu$
+The quadcopter is assumed to be rigid body and thus Newton-Euler equations can be used to describe its dynamics. In the body frame, the force required for the acceleration of mass $m \dot{V}_B$ and the centrifugal force $\nu \times (mV_B)$ are equal to the gravity $R^T G$ and the total thrust of the rotos $T_B$
 
-### Euler-Lagrange equations
-The Lagrangian $\mathcal{L}$ is the sum of the translational energy $E_{\text{trans}}$ and rotational energy $E_{\text{rot}}$ minus the potential energy $E_{\text{pot}}$.
+$m\dot{V}_B + \nu \times (mV_B) =\ R^TG + T_B$
+
+In the inertial frame, the centrifugal force is nullified. Thus, only the gravitational force and the magnitude and direction of the thrust are contributing in the acceleration of the quadcopter
+
+### Newton-Euler equations
 ```math
-\mathcal{L}(q, \dot{q}) = E_{\text{trans}} + E_{\text{rot}} - E_{\text{pot}}\\
-
-= \frac{m}{2} \dot{\boldsymbol{\xi}}^T \dot{\boldsymbol{\xi}} + \frac{1}{2} \boldsymbol{\nu}^T \mathbf{I} \boldsymbol{\nu} - mgz
+m\ddot{\boldsymbol{\xi}} = \mathbf{G} + \mathbf{R} \mathbf{T}_B
 ```
-The Euler-Lagrange equations with external forces and torques are
 ```math
 \begin{bmatrix}
-f \\
-\tau
+\ddot{x} \\
+\ddot{y} \\
+\ddot{z}
 \end{bmatrix}
-=
-\frac{d}{dt} \left( \frac{\partial L}{\partial \dot{q}} \right) - \frac{\partial L}{\partial q}
-```
-The linear and angular components do not depend on each other thus they can be studied separately. The linear external force is the total thrust of the rotors. The linear Euler-Lagrange equations are
-```math
-f = RT_B = m \ddot{\xi} + mg \begin{bmatrix} 0 \\ 0 \\ 1 \end{bmatrix}
-```
-The Jacobian matrix $J(\eta)$ from $\nu$ to $\dot{\eta}$ is
-```math
-J(\eta) = J = W_\eta^T I W_\eta =
+= -g
 \begin{bmatrix}
-I_{xx} & 0 & -I_{xx} \sin\theta \\
-0 & I_{yy} \cos^2 \phi + I_{zz} \sin^2 \phi & (I_{yy} - I_{zz}) \cos \phi \sin \phi \cos \theta \\
-- I_{xx} \sin \theta & (I_{yy} - I_{zz}) \cos \phi \sin \phi \cos \theta & I_{xx} \sin^2 \theta + I_{yy} \sin^2 \phi \cos^2 \theta + I_{zz} \cos^2 \phi \cos^2 \theta
+0 \\
+0 \\
+1
+\end{bmatrix}
++ \frac{T}{m}
+\begin{bmatrix}
+\cos\psi \sin\theta \cos\phi + \sin\psi \sin\phi \\
+\sin\psi \sin\theta \cos\phi - \cos\psi \sin\phi \\
+\cos\theta \cos\phi
 \end{bmatrix}
 ```
-Thus, the rotational energy  $E_{\text{rot}}$ can be expressed in the inertial frame as
-```math
-E_{\text{rot}} = \frac{1}{2} \nu^T I \nu = \frac{1}{2} \dot{\eta}^T J \dot{\eta}
-```
-The external angular force is the torques of the rotors. The angular Euler-Lagrange equations are
-```math
-\tau = \tau_B = J \ddot{\eta} + \frac{d}{dt}(J) \dot{\eta} - \frac{1}{2} \frac{\partial}{\partial \eta} \left( \dot{\eta}^T J \dot{\eta} \right) = J \ddot{\eta} + C(\eta, \dot{\eta}) \dot{\eta}
-```
-in which the matrix $C(\eta, \dot{\eta})$ is the Coriolis term, containing the gyroscopic and centripetal terms.
 
-The matrix  $C(\eta, \dot{\eta})$ has the form
-```math
-C(\eta, \dot{\eta}) =
-\begin{bmatrix}
-C_{11} & C_{21} & C_{31} \\
-C_{12} & C_{22} & C_{32} \\
-C_{13} & C_{23} & C_{33}
-\end{bmatrix}
-```
-```math
-\begin{aligned}
-C_{11} &= 0 \\
-C_{12} &= (I_{yy} - I_{zz}) \big(\dot{\theta} \cos \phi \sin \phi + \dot{\psi} \sin^2 \phi \cos \theta \big) + (I_{zz} - I_{yy}) \dot{\psi} \cos^2 \phi \cos \theta - I_{xx} \dot{\psi} \cos \theta \\
-C_{13} &= (I_{zz} - I_{yy}) \dot{\psi} \cos \phi \sin \phi \cos^2 \theta \\
-C_{21} &= (I_{zz} - I_{yy}) \big(\dot{\theta} \cos \phi \sin \phi + \dot{\psi} \sin \phi \cos \theta \big) + (I_{yy} - I_{zz}) \dot{\psi} \cos^2 \phi \cos \theta + I_{xx} \dot{\psi} \cos \theta \\
-C_{22} &= (I_{zz} - I_{yy}) \dot{\phi} \cos \phi \sin \phi \\
-C_{23} &= -I_{xx} \dot{\psi} \sin \theta \cos \theta + I_{yy} \dot{\psi} \sin^2 \phi \sin \theta \cos \theta + I_{zz} \dot{\psi} \cos^2 \phi \sin \theta \cos \theta \\
-C_{31} &= (I_{yy} - I_{zz}) \dot{\psi} \cos^2 \theta \sin \phi \cos \phi - I_{xx} \dot{\theta} \cos \theta \\
-C_{32} &= (I_{zz} - I_{yy}) \big(\dot{\theta} \cos \phi \sin \phi \sin \theta + \dot{\phi} \sin^2 \phi \cos \theta \big) + (I_{yy} - I_{zz}) \dot{\phi} \cos^2 \phi \cos \theta \\
-& \quad + I_{xx} \dot{\psi} \sin \theta \cos \theta - I_{yy} \dot{\psi} \sin^2 \phi \sin \theta \cos \theta - I_{zz} \dot{\psi} \cos^2 \phi \sin \theta \cos \theta \\
-C_{33} &= (I_{yy} - I_{zz}) \dot{\phi} \cos \phi \sin \phi \cos^2 \theta - I_{yy} \dot{\theta} \sin^2 \phi \cos \theta \sin \theta - I_{zz} \dot{\theta} \cos^2 \phi \cos \theta \sin \theta + I_{xx} \dot{\theta} \cos \theta \sin \theta
-\end{aligned}
-```
+
