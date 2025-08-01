@@ -61,6 +61,14 @@ The Lagrangian $\mathcal{L}$ is the sum of the translational energy $E_{\text{tr
 = \frac{m}{2} \dot{\boldsymbol{\xi}}^T \dot{\boldsymbol{\xi}} + \frac{1}{2} \boldsymbol{\nu}^T \mathbf{I} \boldsymbol{\nu} - mgz
 ```
 The Euler-Lagrange equations with external forces and torques are
+```math
+\begin{bmatrix}
+f \\
+\tau
+\end{bmatrix}
+=
+\frac{d}{dt} \left( \frac{\partial L}{\partial \dot{q}} \right) - \frac{\partial L}{\partial q}
+
 
 
 
