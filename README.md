@@ -227,8 +227,8 @@ T_1 & T_2 & T_3 & T_4
 \begin{align*}
 \min_{\mathbf{u}(\cdot)} J = \int_{0}^{T} \ell(\mathbf{x}(\tau), \mathbf{u}(\tau))\mathrm{d}\tau + V_f^e(\mathbf{x}(T))\\
 \text{subject to} \quad  \forall \tau \in [0, T]:
-& \dot{\mathbf{x}}(\tau) = f(\mathbf{x}(\tau), \mathbf{u}(\tau)), \quad \mathbf{x}(0) = \mathbf{x}_0 \\
-& \mathbf{x}(\tau) \in \mathbb{X}, \quad \mathbf{u}(\tau) \in \mathbb{U}
+\dot{\mathbf{x}}(\tau) = f(\mathbf{x}(\tau), \mathbf{u}(\tau)), \quad \mathbf{x}(0) = \mathbf{x}_0 \\
+\mathbf{x}(\tau) \in \mathbb{X}, \quad \mathbf{u}(\tau) \in \mathbb{U}
 \end{align*}
 ```
 ### Discrete time Nonlinear Model Predictive Control Formulation: Trajectory Optimisation
