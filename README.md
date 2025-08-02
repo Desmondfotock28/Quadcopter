@@ -222,3 +222,4 @@ x & y & z & \dot{x} & \dot{y} & \dot{z} & \phi & \theta & \psi & \dot{\phi} & \d
 T_1 & T_2 & T_3 & T_4
 \end{bmatrix}^T
 ```
+### Nonlinear Model Predictive Control Formulation Trajectory Optimisation
