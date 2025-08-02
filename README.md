@@ -223,3 +223,14 @@ T_1 & T_2 & T_3 & T_4
 \end{bmatrix}^T
 ```
 ### Nonlinear Model Predictive Control Formulation: Trajectory Optimisation
+The control problem is to regulate the state to the origin. In NMPC, this is done by considering the optimization problem defined by:  
+```math
+\begin{align*}
+V(x_k) = \min_{\mathbf{u}_k, \mathbf{x}_k} \; & V_f(x_{k+N|k}) + \sum_{i=0}^{N-1} L(x_{k+i|k}, u_{k+i|k}) \\
+\text{s.t.} \quad & x_{k|k} = x_k, \\
+& x_{k+i+1|k} = f_{rk4}(x_{k+i|k}, u_{k+i|k}), \quad \forall i \in \mathbb{I}_{[0, N-1]}, \\
+& x_{k+i|k} \in \mathbb{X}, \quad u_{k+i|k} \in \mathbb{U}, \\
+& x_{k+N|k} \in \mathbb{X}_f.
+\end{align*}
+```
+
