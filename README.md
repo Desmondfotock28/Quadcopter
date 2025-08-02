@@ -144,9 +144,9 @@ in which $\omega_\Gamma = \omega_1 - \omega_2 + \omega_3 - \omega_4$
 \end{bmatrix}
 =
 \begin{bmatrix}
-l k (-\omega_2^2 + \omega_4^2) \\
-l k (-\omega_1^2 + \omega_3^2) \\
-\sum_{i=1}^{4} \tau_{M_i}
+\frac{l}{\sqrt{2}} \left( -T_1 - T_2 + T_3 + T_4 \right) \\
+\frac{l}{\sqrt{2}} \left( T_1 - T_2 - T_3 + T_4 \right) \\
+\tau_{M_1} - \tau_{M_2} + \tau_{M_3} - \tau_{M_4}
 \end{bmatrix}
 ```
 ```math
