@@ -163,7 +163,10 @@ T
 ```math
 \tau_{M_i} = b \, \omega_i^2 + I_M \, \dot{\omega}_i
 ```
-The lift constant is $k$, the drag constant is $b$ and the inertia moment of the rotor is $I_M$. Usually the effect of $\dot{\omega}_i$ is considered small and thus it is omitted.  $l$ is the distance between the rotor and the center of mass of the quadcopter. 
+The lift constant is $k$, the drag constant is $b$ and the inertia moment of the rotor is $I_M$. Usually the effect of $\dot{\omega}_i$ is considered small and thus it is omitted.  $l$ is the distance between the rotor and the center of mass of the quadcopter. The quadcopter’s actuators limit the applicable thrust for each rotor, effectively constraining $Ti$, $i={1,2,3,4} as
+```math
+0 \leq T_{\text{min}} \leq T_i \leq T_{\text{max}}
+```
 ### State Equations
 The nonlinear state-space dynamics combine translational and rotational dynamics:
 ```math
