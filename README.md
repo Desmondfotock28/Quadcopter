@@ -234,6 +234,6 @@ V(\mathrm{x}_k) = \min_{\mathbf{u}_k, \mathbf{x}_k} \; & V_f(\mathrm{x}_{k+N|k})
 \end{align*}
 ```
 ```math
-L(x_{k+i|k}, u_{k+i|k}) = \left\| x_{k+i|k} - x_r \right\|_Q^2 + \left\| u_{k+i|k} - u_r \right\|_R^2;      V_f(x_{k+N|k}) = \left\| x_{k+N|k} - x_r \right\|_P^2
+L( \mathrm{x}_{k+i|k},  \mathrm{u}_{k+i|k}) = \left\| \mathrm{x}_{k+i|k} -  \mathrm{x}_r \right\|_Q^2 + \left\|  \mathrm{u}_{k+i|k} -  \mathrm{u}_r \right\|_R^2;      V_f( \mathrm{x}_{k+N|k}) = \left\|  \mathrm{x}_{k+N|k} -  \mathrm{x}_r \right\|_P^2
 ```
 Q,R,P positive semi definite weight matrices:
