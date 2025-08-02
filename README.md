@@ -225,7 +225,7 @@ T_1 & T_2 & T_3 & T_4
 ### Continous Optimal Control Formulation: Trajectory Optimisation
 ```math
 \begin{equation}
-\min_{\mathbf{u}(\cdot)} J = \int_{0}^{T} \ell(\mathbf{x}(\tau), \mathbf{u}(\tau), u_\text{ref}(\tau)), x_\text{ref}(\tau)) \, \mathrm{d}\tau + V_f^e(\mathbf{x}(T))
+\min_{\mathbf{u}(\cdot)} J = \int_{0}^{T} \ell(\mathbf{x}(\tau), \mathbf{u}(\tau))\mathrm{d}\tau + V_f^e(\mathbf{x}(T))
 \label{eq:Cost_function}
 \end{equation}
 ```
