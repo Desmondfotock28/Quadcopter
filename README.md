@@ -223,7 +223,7 @@ T_1 & T_2 & T_3 & T_4
 \end{bmatrix}^T
 ```
 ### Discrete time Nonlinear Model Predictive Control Formulation: Trajectory Optimisation
-The control problem is to regulate the state to the origin. In discrete time NMPC formulation, this is done by considering the optimization problem at current state $ \mathrm{x}_k$ defined by:  
+The control problem is to regulate the state to the origin. In discrete time NMPC formulation, this is done by considering the optimization problem at current state $ x_k$ defined by:  
 ```math
 \begin{align*}
 V(\mathrm{x}_k) = \min_{\mathbf{u}_k, \mathbf{x}_k} \; & V_f(\mathrm{x}_{k+N|k}) + \sum_{i=0}^{N-1} L(\mathrm{x}_{k+i|k}, \mathrm{u}_{k+i|k}) \\
