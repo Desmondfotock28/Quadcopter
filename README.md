@@ -226,11 +226,11 @@ T_1 & T_2 & T_3 & T_4
 The control problem is to regulate the state to the origin. In NMPC, this is done by considering the optimization problem at current state $x_k$ defined by:  
 ```math
 \begin{align*}
-V(x_k) = \min_{\mathbf{u}_k, \mathbf{x}_k} \; & V_f(x_{k+N|k}) + \sum_{i=0}^{N-1} L(x_{k+i|k}, u_{k+i|k}) \\
-\text{s.t.} \quad & x_{k|k} = x_k, \\
-& x_{k+i+1|k} = f_{rk4}(x_{k+i|k}, u_{k+i|k}), \quad \forall i \in \mathbb{I}_{[0, N-1]}, \\
-& x_{k+i|k} \in \mathbb{X}, \quad u_{k+i|k} \in \mathbb{U}, \\
-& x_{k+N|k} \in \mathbb{X}_f.
+V(\mathrm{x}_k) = \min_{\mathbf{u}_k, \mathbf{x}_k} \; & V_f(\mathrm{x}_{k+N|k}) + \sum_{i=0}^{N-1} L(\mathrm{x}_{k+i|k}, \mathrm{u}_{k+i|k}) \\
+\text{s.t.} \quad & \mathrm{x}_{k|k} = \mathrm{x}_k, \\
+& \mathrm{x}_{k+i+1|k} = f_{rk4}(\mathrm{x}_{k+i|k}, \mathrm{u}_{k+i|k}), \quad \forall i \in \mathbb{I}_{[0, N-1]}, \\
+& \mathrm{x}_{k+i|k} \in \mathbb{X}, \quad \mathrm{u}_{k+i|k} \in \mathbb{U}, \\
+& \mathrm{x}_{k+N|k} \in \mathbb{X}_f.
 \end{align*}
 ```
 
