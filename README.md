@@ -227,7 +227,6 @@ T_1 & T_2 & T_3 & T_4
 \begin{equation}
 \min_{\mathbf{u}(\cdot)} J = \int_{0}^{T} \ell(\mathbf{x}(\tau), \mathbf{u}(\tau))\mathrm{d}\tau + V_f^e(\mathbf{x}(T))
 \end{equation}
-\noindent
 subject to \forall \tau \in [0, T]:
 \begin{align}
     & \dot{\mathbf{x}}(\tau) = f(\mathbf{x}(\tau), \mathbf{u}(\tau)), \quad \mathbf{x}(0) = \mathbf{x}_0
