@@ -204,7 +204,7 @@ A_x & 0 & 0 \\
 \end{bmatrix}
 \end{equation}
 ```
-\text{where } A_x, A_y, \text{ and } A_z \text{ are the drag force coefficients for velocities in the corresponding directions of the inertial frame.}
+where  $A_x$, $A_y$, and $A_z$ are the drag force coefficients for velocities in the corresponding directions of the inertial frame.
 ### State Equations
 The nonlinear state-space dynamics combine translational and rotational dynamics:
 ```math
