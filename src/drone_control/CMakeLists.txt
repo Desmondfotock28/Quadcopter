@@ -11,7 +11,7 @@ find_package(rclcpp REQUIRED)
 find_package(mavros_msgs REQUIRED)
 
 # MAVROS2 motor test
-add_executable(motor_test_mavros2 src/motor_test_mavros2.cpp)
+add_executable(motor_test_mavros2 cpp_nodes/motor_test_mavros2.cpp)
 target_include_directories(motor_test_mavros2 PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
