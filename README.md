@@ -22,7 +22,7 @@ This project combines multiple robotics domains to create an autonomous quadcopt
 - **Custom Components**: 3D-printed mounting plates for clean integration
 
 <div align="center">
-  <img src="assets/model.PNG" alt="F450 Quadcopter 3D Model" height="300"><br>
+  <img src="assets/annotate3D_model.jpg" alt="F450 Quadcopter 3D Model" height="300"><br>
   <sub><b>F450 Quadcopter Platform</b></sub>
 </div>
 
