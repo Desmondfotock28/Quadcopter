@@ -1,6 +1,9 @@
 # Autonomous F450 Quadcopter Project
 
-*[PLACEHOLDER: F450 drone with custom RPi and camera mounts]*
+<div align="center">
+  <img src="assets/model_real.jpeg" alt="F450 Quadcopter" height="300"><br>
+  <sub><b>F450 Quadcopter Platform</b></sub>
+</div>
 
 An advanced autonomous quadcopter system combining **control**, **computer vision**, and **custom hardware integration** for GPS-denied navigation. This project explores the complete development pipeline from mathematical modeling and simulation to real-world implementation.
 ## Project Overview
