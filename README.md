@@ -26,7 +26,7 @@ This project combines multiple robotics domains to create an autonomous quadcopt
 
 <div align="center">
   <img src="assets/annotate3D_model.jpg" alt="F450 Quadcopter 3D Model" height="300"><br>
-  <sub><b>F450 Quadcopter Platform</b></sub>
+  <sub><b>F450 Quadcopter Platform 3D Model</b></sub>
 </div>
 
 ## Documentation
