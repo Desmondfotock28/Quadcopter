@@ -46,14 +46,17 @@ Comprehensive documentation available in the [project wiki](https://github.com/D
 
 ### Repository Structure
 ```
-├── algorithms/  # Algorithm development (not for RPi deployment)
-│   ├── nmpc/               # NMPC implementations and testing
-│   └── perception/         # Computer vision algorithms
-├── simulation/             # Simulation environments and models
+├── algorithms/             # Algorithm development (not for RPi deployment)
+│   └── nmpc/               # NMPC implementations and testing
+│       └── active_subspace/    # Active subspace optimization methods
 ├── src/                    # ROS packages for deployment
-│   └── drone_control/      # ROS2 control nodes
-├── hardware/               # Config files and 3D models
-└── assets/                 # Images and documentation media
+│   └── drone_control/      # ROS2 control nodes with C++ implementation
+├── hardware/               # CAD models and 3D designs
+│   └── cad_models/         # STEP files for all drone components
+├── assets/                 # Images and documentation media
+│   ├── hardware/           # Photos of physical drone
+│   └── models/             # 3D renderings and diagrams
+└── *.sh                    # Helper scripts for MAVROS2 operations
 ```
 
 ### Running NMPC Simulations (Development)
