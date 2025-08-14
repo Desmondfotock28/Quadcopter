@@ -39,7 +39,6 @@ Comprehensive documentation available in the [project wiki](https://github.com/D
 - **[Computer Vision](https://github.com/Desmondfotock28/Quadcopter/wiki/Computer-Vision)** - SLAM and object detection roadmap
 - **[ROS Integration](https://github.com/Desmondfotock28/Quadcopter/wiki/ROS-Integration)** - System architecture and communication
 - **[3D Printing](https://github.com/Desmondfotock28/Quadcopter/wiki/3D-Printing)** - Custom mounting plate design and manufacturing
-- **[Testing Results](https://github.com/Desmondfotock28/Quadcopter/wiki/Testing-Results)** - Simulation and flight test validation
 - **[Learning Journey](https://github.com/Desmondfotock28/Quadcopter/wiki/Learning-Journey)** - Skills development and project evolution
 
 ## Quick Start
