@@ -1,0 +1,105 @@
+version: '3.8'
+
+services:
+  # Main simulation environment
+  drone-sim:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: f450_drone_simulation
+    image: f450-drone-sim:latest
+    privileged: true
+    network_mode: host
+    stdin_open: true
+    tty: true
+    
+    environment:
+      - DISPLAY=${DISPLAY}
+      - QT_X11_NO_MITSHM=1
+      - LIBGL_ALWAYS_INDIRECT=1
+      - LIBGL_ALWAYS_SOFTWARE=1
+      - GALLIUM_DRIVER=llvmpipe
+      - XDG_RUNTIME_DIR=/tmp/runtime-root
+      - XAUTHORITY=${HOME}/.Xauthority
+      - USER=${USER}
+      - GAZEBO_MODEL_PATH=/workspace/PX4-Autopilot/Tools/simulation/gazebo/sitl_gazebo/models:/workspace/src/simulation/models
+      - GAZEBO_PLUGIN_PATH=/workspace/PX4-Autopilot/build/px4_sitl_default/build_gazebo
+      - GAZEBO_RESOURCE_PATH=/workspace/src/simulation/worlds
+      - PX4_HOME_LAT=37.7749
+      - PX4_HOME_LON=-122.4194
+      - PX4_HOME_ALT=10
+      
+    volumes:
+      # X11 forwarding for GUI applications
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - ${HOME}/.Xauthority:/root/.Xauthority:rw
+      
+      # Source code mounting for development
+      - ../src:/workspace/src
+      - ../algorithms:/workspace/algorithms
+      - ../assets:/workspace/assets
+      - ../hardware:/workspace/hardware
+      - ../requirements.txt:/workspace/requirements.txt
+      
+      # PX4 Autopilot (will be cloned)
+      - px4_autopilot:/workspace/PX4-Autopilot
+      
+      # Persistent workspace
+      - workspace_install:/workspace/install
+      - workspace_build:/workspace/build
+      - workspace_log:/workspace/log
+      
+    ports:
+      # PX4 SITL ports
+      - "14550:14550/udp"  # QGroundControl
+      - "14540:14540/udp"  # MAVROS2/offboard
+      - "14570:14570/udp"  # MAVLink normal
+      - "14580:14580/udp"  # MAVLink onboard
+      - "14560:14560/udp"  # Simulator
+      
+    command: >
+      bash -c "
+      echo 'F450 Drone Simulation Environment Ready!';
+      echo 'Available commands:';
+      echo '  ./start_simulation.sh    - Start full simulation';
+      echo '  ./start_mavros2_sitl.sh  - Start MAVROS2 for SITL';
+      echo '  ./run_motor_test_sitl.sh - Run motor test in simulation';
+      echo '';
+      echo 'To build workspace: colcon build';
+      echo 'To source workspace: source install/setup.bash';
+      echo '';
+      bash"
+    
+    # GPU support (uncomment if NVIDIA GPU available)
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+
+  # QGroundControl service (optional - can also run natively)
+  qgroundcontrol:
+    image: bluerobotics/qgroundcontrol:latest
+    container_name: qgroundcontrol
+    network_mode: host
+    depends_on:
+      - drone-sim
+    environment:
+      - DISPLAY=${DISPLAY}
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - ${HOME}/.Xauthority:${HOME}/.Xauthority:rw
+    profiles:
+      - qgc  # Only start with: docker-compose --profile qgc up
+
+volumes:
+  px4_autopilot:
+  workspace_install:
+  workspace_build:
+  workspace_log:
+
+networks:
+  default:
+    driver: bridge

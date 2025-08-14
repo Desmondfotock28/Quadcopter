@@ -24,3 +24,6 @@ Thumbs.db
 *.tmp
 *.bak
 *.orig
+
+# Claude
+CLAUDE.md

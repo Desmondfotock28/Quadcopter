@@ -1,0 +1,237 @@
+<?xml version="1.0"?>
+<robot name="f450_drone">
+  
+  <!-- Base link (drone body center) -->
+  <link name="base_link">
+    <visual>
+      <geometry>
+        <box size="0.15 0.15 0.08"/>
+      </geometry>
+      <material name="dark_gray">
+        <color rgba="0.2 0.2 0.2 0.9"/>
+      </material>
+    </visual>
+  </link>
+  
+  <!-- Front-Left arm (red for orientation) -->
+  <link name="arm_fl">
+    <visual>
+      <origin xyz="0.12 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.24 0.02 0.01"/>
+      </geometry>
+      <material name="red">
+        <color rgba="0.8 0.1 0.1 1"/>
+      </material>
+    </visual>
+  </link>
+  
+  <!-- Front-Right arm (red for orientation) -->
+  <link name="arm_fr">
+    <visual>
+      <origin xyz="0.12 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.24 0.02 0.01"/>
+      </geometry>
+      <material name="red">
+        <color rgba="0.8 0.1 0.1 1"/>
+      </material>
+    </visual>
+  </link>
+  
+  <!-- Back-Left arm -->
+  <link name="arm_bl">
+    <visual>
+      <origin xyz="0.12 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.24 0.02 0.01"/>
+      </geometry>
+      <material name="black">
+        <color rgba="0.1 0.1 0.1 1"/>
+      </material>
+    </visual>
+  </link>
+  
+  <!-- Back-Right arm -->
+  <link name="arm_br">
+    <visual>
+      <origin xyz="0.12 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.24 0.02 0.01"/>
+      </geometry>
+      <material name="black">
+        <color rgba="0.1 0.1 0.1 1"/>
+      </material>
+    </visual>
+  </link>
+  
+  <!-- Motor housings -->
+  <link name="motor_fl">
+    <visual>
+      <geometry>
+        <cylinder radius="0.028" length="0.02"/>
+      </geometry>
+      <material name="silver">
+        <color rgba="0.7 0.7 0.7 1"/>
+      </material>
+    </visual>
+  </link>
+  
+  <link name="motor_fr">
+    <visual>
+      <geometry>
+        <cylinder radius="0.028" length="0.02"/>
+      </geometry>
+      <material name="silver">
+        <color rgba="0.7 0.7 0.7 1"/>
+      </material>
+    </visual>
+  </link>
+  
+  <link name="motor_bl">
+    <visual>
+      <geometry>
+        <cylinder radius="0.028" length="0.02"/>
+      </geometry>
+      <material name="silver">
+        <color rgba="0.7 0.7 0.7 1"/>
+      </material>
+    </visual>
+  </link>
+  
+  <link name="motor_br">
+    <visual>
+      <geometry>
+        <cylinder radius="0.028" length="0.02"/>
+      </geometry>
+      <material name="silver">
+        <color rgba="0.7 0.7 0.7 1"/>
+      </material>
+    </visual>
+  </link>
+  
+  <!-- Propellers (simplified as discs) -->
+  <link name="prop_fl">
+    <visual>
+      <origin xyz="0 0 0.015" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.115" length="0.005"/>
+      </geometry>
+      <material name="prop">
+        <color rgba="0.1 0.1 0.1 0.6"/>
+      </material>
+    </visual>
+  </link>
+  
+  <link name="prop_fr">
+    <visual>
+      <origin xyz="0 0 0.015" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.115" length="0.005"/>
+      </geometry>
+      <material name="prop">
+        <color rgba="0.1 0.1 0.1 0.6"/>
+      </material>
+    </visual>
+  </link>
+  
+  <link name="prop_bl">
+    <visual>
+      <origin xyz="0 0 0.015" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.115" length="0.005"/>
+      </geometry>
+      <material name="prop">
+        <color rgba="0.1 0.1 0.1 0.6"/>
+      </material>
+    </visual>
+  </link>
+  
+  <link name="prop_br">
+    <visual>
+      <origin xyz="0 0 0.015" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.115" length="0.005"/>
+      </geometry>
+      <material name="prop">
+        <color rgba="0.1 0.1 0.1 0.6"/>
+      </material>
+    </visual>
+  </link>
+  
+  <!-- Joints connecting arms to body (45 degree angles for X configuration) -->
+  <joint name="arm_fl_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="arm_fl"/>
+    <origin xyz="0 0 0" rpy="0 0 0.785398"/>
+  </joint>
+  
+  <joint name="arm_fr_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="arm_fr"/>
+    <origin xyz="0 0 0" rpy="0 0 -0.785398"/>
+  </joint>
+  
+  <joint name="arm_bl_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="arm_bl"/>
+    <origin xyz="0 0 0" rpy="0 0 2.356194"/>
+  </joint>
+  
+  <joint name="arm_br_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="arm_br"/>
+    <origin xyz="0 0 0" rpy="0 0 -2.356194"/>
+  </joint>
+  
+  <!-- Motors at end of arms -->
+  <joint name="motor_fl_joint" type="fixed">
+    <parent link="arm_fl"/>
+    <child link="motor_fl"/>
+    <origin xyz="0.24 0 0" rpy="0 0 0"/>
+  </joint>
+  
+  <joint name="motor_fr_joint" type="fixed">
+    <parent link="arm_fr"/>
+    <child link="motor_fr"/>
+    <origin xyz="0.24 0 0" rpy="0 0 0"/>
+  </joint>
+  
+  <joint name="motor_bl_joint" type="fixed">
+    <parent link="arm_bl"/>
+    <child link="motor_bl"/>
+    <origin xyz="0.24 0 0" rpy="0 0 0"/>
+  </joint>
+  
+  <joint name="motor_br_joint" type="fixed">
+    <parent link="arm_br"/>
+    <child link="motor_br"/>
+    <origin xyz="0.24 0 0" rpy="0 0 0"/>
+  </joint>
+  
+  <!-- Propellers on motors (fixed for visualization) -->
+  <joint name="prop_fl_joint" type="fixed">
+    <parent link="motor_fl"/>
+    <child link="prop_fl"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+  
+  <joint name="prop_fr_joint" type="fixed">
+    <parent link="motor_fr"/>
+    <child link="prop_fr"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+  
+  <joint name="prop_bl_joint" type="fixed">
+    <parent link="motor_bl"/>
+    <child link="prop_bl"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+  
+  <joint name="prop_br_joint" type="fixed">
+    <parent link="motor_br"/>
+    <child link="prop_br"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+  
+</robot>
