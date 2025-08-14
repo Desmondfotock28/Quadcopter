@@ -1,33 +1,22 @@
 # Assets Directory
 
-This directory contains all visual assets for documentation and presentations.
+This directory contains visual assets for documentation and project presentation.
 
 ## Directory Structure
 
 ### `hardware/`
-Photos and images related to physical components:
-- Assembled drone photos
-- 3D printed mounting plates (RPi and depth camera)
-- Component installation process
-- Wiring and cable management
-- Before/after assembly comparisons
+Photos of physical drone components and assembly:
+- `model_real.jpeg` - Actual F450 quadcopter assembly
+- `pixhawx_rpi4.png` - Pixhawk and Raspberry Pi 4 integration
 
-### `simulation/`
-Screenshots and videos from simulation environments:
-- Gazebo simulation setup
-- Control algorithm visualizations
-- Trajectory tracking demonstrations
-- Performance plots and graphs
+### `models/`
+3D models and technical diagrams:
+- `model.PNG` - 3D model rendering of F450 quadcopter
+- `annotate3D_model.jpg` - Annotated 3D model with component labels
+- `dynamic_model.jpg` - Dynamic model visualization/control diagrams
 
-### `results/`
-Documentation of testing and validation:
-- Flight test photos and videos
-- Performance analysis plots
-- Comparison charts (simulation vs real-world)
-- Error analysis and validation metrics
-
-## Image Guidelines
-- Use high resolution images (minimum 1920x1080 for screenshots)
-- Include descriptive filenames with dates where relevant
-- Maintain consistent lighting and angles for hardware photos
-- Include scale references where helpful
+## Usage
+These images are referenced in:
+- Main README.md for project visualization
+- Wiki documentation for hardware setup guides
+- Technical documentation for system architecture

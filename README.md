@@ -1,7 +1,7 @@
 # Autonomous F450 Quadcopter Project
 
 <div align="center">
-  <img src="assets/model_real.jpeg" alt="F450 Quadcopter" height="300"><br>
+  <img src="assets/hardware/model_real.jpeg" alt="F450 Quadcopter" height="300"><br>
   <sub><b>F450 Quadcopter Platform</b></sub>
 </div>
 
@@ -25,22 +25,22 @@ This project combines multiple robotics domains to create an autonomous quadcopt
 - **Custom Components**: 3D-printed mounting plates for clean integration
 
 <div align="center">
-  <img src="assets/annotate3D_model.jpg" alt="F450 Quadcopter 3D Model" height="300"><br>
+  <img src="assets/models/annotate3D_model.jpg" alt="F450 Quadcopter 3D Model" height="300"><br>
   <sub><b>F450 Quadcopter Platform 3D Model</b></sub>
 </div>
 
 ## Documentation
 
-Comprehensive documentation available in the [project wiki](../../../wiki):
+Comprehensive documentation available in the [project wiki](https://github.com/Desmondfotock28/Quadcopter/wiki):
 
-- **[Hardware Setup](../../../wiki/Hardware-Setup)** - Complete build guide with 3D printed components
-- **[Control Theory](../../../wiki/Control-Theory)** - Mathematical foundations and NMPC formulation  
-- **[NMPC Implementation](../../../wiki/NMPC-Implementation)** - Algorithm development and testing
-- **[Computer Vision](../../../wiki/Computer-Vision)** - SLAM and object detection roadmap
-- **[ROS Integration](../../../wiki/ROS-Integration)** - System architecture and communication
-- **[3D Printing](../../../wiki/3D-Printing)** - Custom mounting plate design and manufacturing
-- **[Testing Results](../../../wiki/Testing-Results)** - Simulation and flight test validation
-- **[Learning Journey](../../../wiki/Learning-Journey)** - Skills development and project evolution
+- **[Hardware Setup](https://github.com/Desmondfotock28/Quadcopter/wiki/Hardware-Setup)** - Complete build guide with 3D printed components
+- **[Control Theory](https://github.com/Desmondfotock28/Quadcopter/wiki/Control-Theory)** - Mathematical foundations and NMPC formulation  
+- **[NMPC Implementation](https://github.com/Desmondfotock28/Quadcopter/wiki/NMPC-Implementation)** - Algorithm development and testing
+- **[Computer Vision](https://github.com/Desmondfotock28/Quadcopter/wiki/Computer-Vision)** - SLAM and object detection roadmap
+- **[ROS Integration](https://github.com/Desmondfotock28/Quadcopter/wiki/ROS-Integration)** - System architecture and communication
+- **[3D Printing](https://github.com/Desmondfotock28/Quadcopter/wiki/3D-Printing)** - Custom mounting plate design and manufacturing
+- **[Testing Results](https://github.com/Desmondfotock28/Quadcopter/wiki/Testing-Results)** - Simulation and flight test validation
+- **[Learning Journey](https://github.com/Desmondfotock28/Quadcopter/wiki/Learning-Journey)** - Skills development and project evolution
 
 ## Quick Start
 
@@ -142,7 +142,7 @@ ros2 run rqt_console rqt_console
 
 ## Contributing
 
-This is an open research and development project. See [Learning Journey](../../../wiki/Learning-Journey) for our development approach and lessons learned.
+This is an open research and development project. See [Learning Journey](https://github.com/Desmondfotock28/Quadcopter/wiki/Learning-Journey) for our development approach and lessons learned.
 
 ## License
 
