@@ -250,7 +250,7 @@ def Quadcopter_ode(x, u):
 
     dx3 = x[9] + x[10]*(sin(x[3])*tan(x[4])) + x[11]*(cos(x[3])*tan(x[4]))
 
-    dx4 = x[10]*(cos(x[3])) - x[11]*(sin(x[3])*tan(x[4]))
+    dx4 = x[10]*(cos(x[3])) - x[11]*(sin(x[3]))
 
     dx5 = (sin(x[3])/cos(x[4]))*x[10] + (cos(x[3])/cos(x[4]))*x[11]
 

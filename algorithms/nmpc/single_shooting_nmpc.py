@@ -208,7 +208,7 @@ def Quadcopter_ode(x, u):
 
      #adding disturbance 
      # Disturbances (set to 0 if not used)
-    dwx, dwy, dwz = 0.12, -0.08, 0.05
+    dwx, dwy, dwz = 0.0, 0.0, 0.0
    
      # Equations of motion
     dx0 = x[6]
@@ -219,7 +219,7 @@ def Quadcopter_ode(x, u):
 
     dx3 = x[9] + x[10]*(sin(x[3])*tan(x[4])) + x[11]*(cos(x[3])*tan(x[4]))
 
-    dx4 = x[10]*(cos(x[3])) - x[11]*(sin(x[3])*tan(x[4]))
+    dx4 = x[10]*(cos(x[3])) - x[11]*(sin(x[3]))
 
     dx5 = (sin(x[3])/cos(x[4]))*x[10] + (cos(x[3])/cos(x[4]))*x[11]
 
