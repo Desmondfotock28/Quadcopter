@@ -31,9 +31,9 @@ def plot_3d_trajectory(t , x_pred):
     # Plot the predicted trajectory
     t = np.array(t) 
     ax.plot(x_pred_vals, y_pred_vals, z_pred_vals, label="Predicted Trajectory", color='b', linestyle='--')
-    xr = 0.2 * np.cos(t) + 0.5
-    yr = 0.2 * np.sin(t) + 0.5
-    zr = 0.1 * t + 1.1
+    xr =  np.sin(np.pi * t/10) 
+    yr = np.cos(np.pi * t/10) + -1.0
+    zr = np.sin(np.pi * t/10) + t
     ax.plot(xr, yr, zr, label="Reference Trajectory", color='r', linestyle='--')
 
     # Labels and legend
@@ -45,29 +45,112 @@ def plot_3d_trajectory(t , x_pred):
     # Show the plot
     plt.show()
 
+def plot_xyz_subplots(t, x_pred):
+    """
+    Plot distances in X, Y, and Z as three separate subplots.
+
+    Parameters:
+    t (array-like): Time steps
+    x_pred (numpy.ndarray): Predicted positions as an (N,3) array [x, y, z]
+
+    Returns:
+    None
+    """
+    # Extract x, y, z values
+    x_vals = x_pred[:, 0]
+    y_vals = x_pred[:, 1]
+    z_vals = x_pred[:, 2]
+
+    # Reference trajectory (example)
+    t = np.array(t)
+    xr = np.sin(np.pi * t / 10)
+    yr = np.cos(np.pi * t / 10) - 1.0
+    zr = np.sin(np.pi * t / 10) + t
+
+    # Create subplots
+    fig, axs = plt.subplots(3, 1, figsize=(8, 10), sharex=True)
+
+    # Plot X
+    axs[0].plot(t, x_vals, label="Predicted X", color='b')
+    axs[0].plot(t, xr, label="Reference X", color='r', linestyle='--')
+    axs[0].set_ylabel("X")
+    axs[0].legend()
+    axs[0].grid(True)
+
+    # Plot Y
+    axs[1].plot(t, y_vals, label="Predicted Y", color='b')
+    axs[1].plot(t, yr, label="Reference Y", color='r', linestyle='--')
+    axs[1].set_ylabel("Y")
+    axs[1].legend()
+    axs[1].grid(True)
+
+    # Plot Z
+    axs[2].plot(t, z_vals, label="Predicted Z", color='b')
+    axs[2].plot(t, zr, label="Reference Z", color='r', linestyle='--')
+    axs[2].set_ylabel("Z")
+    axs[2].set_xlabel("Time")
+    axs[2].legend()
+    axs[2].grid(True)
+
+    plt.tight_layout()
+    plt.show()
+
+def plot_motor_voltages(t, voltages):
+    """
+    Plot voltage drawn by each motor over time.
+
+    Parameters:
+    t : array-like
+        Time vector (length N)
+    voltages : numpy.ndarray
+        Voltage values of shape (N, 4), each column corresponds to a motor [v1, v2, v3, v4]
+    
+    Returns:
+    None
+    """
+    t = np.array(t)
+    voltages = np.array(voltages)
+
+    plt.figure(figsize=(10, 6))
+    
+    # Plot each motor voltage
+    plt.plot(t, voltages[:, 0], label='Motor 1', linestyle='-', marker='o', markersize=4)
+    plt.plot(t, voltages[:, 1], label='Motor 2', linestyle='--', marker='s', markersize=4)
+    plt.plot(t, voltages[:, 2], label='Motor 3', linestyle='-.', marker='^', markersize=4)
+    plt.plot(t, voltages[:, 3], label='Motor 4', linestyle=':', marker='d', markersize=4)
+    
+    plt.xlabel('Time [s]')
+    plt.ylabel('Voltage [V]')
+    plt.title('Motor Voltages over Time')
+    plt.grid(True)
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
+
 # States
 # x=[x y z roll pitch yaw vx vy vz  wr wp wy];
 #syms u1 u2 u3 u4
 
-# Define system parameters
+# Define system parameters  of F450 Quadcopter
+#parameter obtain from N. P. Nguyen and S. K. Hong, "Sliding Mode Thau Observer for Actuator Fault Diagnosis of Quadcopter UAVs"
 def Quadcopter_parameters() -> tuple:
     """Define system parameters and constraints."""
-    # System parameters
-    g = 9.81   # m/s^2
-    m = 1.0  # kg
-    k = 5.3e-6 
-    l = 0.225   # m
-    b = 3e-7 
-    Ixx = 0.0365651 # kg m^2
-    Iyy = 0.0365651 # kg m^2
-    Izz = 0.0290742 # kg m^2
-    cm = 9281.8 # v^-2s^-2
-    kd = 0.25  # kg/s
+     # System parameters 
+    g = 9.81        # m/s^2, gravitational acceleration
+    m = 2.0         # kg, mass of the quadcopter
+    k = 9.8e-6      # N·s^2/rad^2, thrust coefficient (relates rotor speed squared to thrust) T = kw^2
+    l = 0.225       # m, distance from the center to each rotor (arm length)
+    b = 1.6e-7        # N·m·s^2/rad^2, drag/torque coefficient (relates rotor speed squared to torque) tau_M= bw^2 + I_Mw_dot
+    Ixx = 0.0035 # kg·m^2, moment of inertia around x-axis
+    Iyy = 0.035 # kg·m^2, moment of inertia around y-axis
+    Izz = 0.005 # kg·m^2, moment of inertia around z-axis
+    cm = 10000     # v^-2·s^-2, motor constant (relates control input to rotor speed squared)  
+    kd = 0.25       # kg/s, linear drag coefficient (damping due to air resistance)  : drag coefficient 
 
     
     # Create a dictionary to hold all parameters
     PAR = {
-        'g': g,
+        'g': g,      
         'm': m,
         'k': k,
         'l': l,
@@ -140,8 +223,8 @@ def Quadcopter_ode(x, u):
     Compute the state derivatives for a Quadcopter system.
 
     Parameters:
-    - x: State vector [x, y, z, phi, theta, psi, dx, dy, dz, dphi, dtheta, dpsi]
-    - u: Input vector [u1, u2, u3, u4] (control inputs)
+    - x: State vector [x, y, z, phi, theta, psi, dx, dy, dz, p, q, r]
+    - u: Input vector [u1, u2, u3, u4] (control inputs/voltages at four motors)
 
     Returns:
     - dx: State derivatives
@@ -152,6 +235,10 @@ def Quadcopter_ode(x, u):
     Ixx, Iyy, Izz, cm, kd =  PAR["Ixx"], PAR["Iyy"], PAR["Izz"], PAR["cm"], PAR["kd"]
     
      # x=[x0=x x1=y x2=z x3=roll x4=pitch x5=yaw x6=vx x7=vy x8=vz  x9=wx x10=wy x11=wz];
+
+     #adding disturbance 
+     # Disturbances (set to 0 if not used)
+    dwx, dwy, dwz = 0.12, -0.08, 0.05
    
      # Equations of motion
     dx0 = x[6]
@@ -166,15 +253,15 @@ def Quadcopter_ode(x, u):
 
     dx5 = (sin(x[3])/cos(x[4]))*x[10] + (cos(x[3])/cos(x[4]))*x[11]
 
-    dx6 = (-kd/m)*x[6] + (k*cm/m)*(sin(x[5])*sin(x[3])+cos(x[5])*cos(x[3])*sin(x[4]))*(u[0]**2 + u[1]**2 + u[2]**2+u[3]**2)
+    dx6 = (-kd/m)*x[6] + (k*cm/m)*(sin(x[5])*sin(x[3])+cos(x[5])*cos(x[3])*sin(x[4]))*(u[0]**2 + u[1]**2 + u[2]**2+u[3]**2) + dwx
 
-    dx7 = (-kd/m)*x[7] + (k*cm/m)*(cos(x[3])*sin(x[5])*sin(x[4])- cos(x[5])*sin(x[3]))*(u[0]**2 + u[1]**2 + u[2]**2+u[3]**2)
+    dx7 = (-kd/m)*x[7] + (k*cm/m)*(cos(x[3])*sin(x[5])*sin(x[4])- cos(x[5])*sin(x[3]))*(u[0]**2 + u[1]**2 + u[2]**2+u[3]**2) + dwy
 
-    dx8 = (-kd/m)*x[8] -g + (k*cm/m)*(cos(x[4])*cos(x[3]))*(u[0]**2 + u[1]**2 + u[2]**2+u[3]**2)
+    dx8 = (-kd/m)*x[8] -g + (k*cm/m)*(cos(x[4])*cos(x[3]))*(u[0]**2 + u[1]**2 + u[2]**2+u[3]**2) + dwz
 
-    dx9 = (l*k*cm/Ixx)*(u[0]**2-u[2]**2)-((Iyy-Izz)/Ixx)*x[10]*x[11]
+    dx9 = (l*k*cm/Ixx)*(u[0]**2-u[1]**2-u[2]**2 + u[3]**2)-((Iyy-Izz)/Ixx)*x[10]*x[11]
 
-    dx10 = (l*k*cm/Iyy)*(u[1]**2-u[3]**2)-((Izz-Ixx)/Iyy)*x[9]*x[11]
+    dx10 = (l*k*cm/Iyy)*(u[0]**2+u[1]**2-u[2]**2 - u[3]**2)-((Izz-Ixx)/Iyy)*x[9]*x[11]
 
     dx11 = (b*cm/Izz)*(u[0]**2-u[1]**2+u[2]**2-u[3]**2)-((Ixx-Iyy)/Izz)*x[9]*x[10]
    
@@ -182,8 +269,7 @@ def Quadcopter_ode(x, u):
 
     return dx
 
-
-def reference_trajectory(t, omega=1.0, a=0.1):
+def reference_trajectory(t, omega=np.pi, a=0.1):
     """
     Generate the reference trajectory for a given time array.
 
@@ -198,9 +284,9 @@ def reference_trajectory(t, omega=1.0, a=0.1):
     - zr: np.ndarray, reference z-coordinate at time t
     """
     # Compute reference trajectory
-    xr = 0.2 * np.cos(omega * t) + 0.5
-    yr = 0.2 * np.sin(omega * t) + 0.5
-    zr = a * t + 1.1
+    xr =  np.sin(omega * t/10) 
+    yr = np.cos(omega * t/10) + -1.0
+    zr = np.sin(omega * t/10) + t
     xref = vertcat(xr, yr, zr, np.zeros(9))
     return xref
 
@@ -223,7 +309,6 @@ x = SX.sym('x', nx);    # states of the system
 u = SX.sym('u', nu);    # control of the system
 
 dx = Quadcopter_ode(x, u)
-
 # Create the CasADi function
 system = Function("sys", [x, u], [dx])
 
@@ -247,9 +332,9 @@ Q = np.diag([
         2,   # velocity in x (v_x)
         2,   # velocity in y (v_y)
         2,   # velocity in z (v_z)
-        1,   # angular velocity roll (omega_phi)
-        1,   # angular velocity pitch (omega_theta)
-        1    # angular velocity yaw (omega_psi)
+        1,   # angular velocity roll (w_x)
+        1,   # angular velocity pitch (w_y)
+        1    # angular velocity yaw (w_z)
     ])
     
 R = 0.1
@@ -424,6 +509,14 @@ def run_closed_loop_mpc(x0, Tr, Ts, sim_time, solver):
 
 # Run the closed-loop MPC for 10s
 Ts = 0.3
-sim_time = 10
-x_ol, u_cl, t, cost_n, time_full,U_open_loop = run_closed_loop_mpc(x0, Tr, Ts, sim_time, pisolver)
+sim_time = 100
+x_ol, u_cl, t, cost_n, time_full, U_open_loop = run_closed_loop_mpc(x0, Tr, Ts, sim_time, pisolver)
+
 plot_3d_trajectory(t, x_ol)
+
+plot_xyz_subplots(t, x_ol)
+
+min_len = min(len(t), u_cl.shape[0])
+t = t[:min_len]
+voltages = u_cl[:min_len, :]
+plot_motor_voltages(t, voltages)
