@@ -221,11 +221,11 @@ def Quadcopter_ode(x, u):
 
     dx5 = (sin(x[3])/cos(x[4]))*x[10] + (cos(x[3])/cos(x[4]))*x[11]
 
-    dx6 = (-kd/m)*x[6] + (k*cm/m)*(sin(x[5])*sin(x[3])+cos(x[5])*cos(x[3])*sin(x[4]))*(u[0]**2 + u[1]**2 + u[2]**2+u[3]**2) + dwx
+    dx6 =  (k*cm/m)*(sin(x[5])*sin(x[3])+cos(x[5])*cos(x[3])*sin(x[4]))*(u[0]**2 + u[1]**2 + u[2]**2+u[3]**2) + dwx  #(-kd/m)*x[6] +
 
-    dx7 = (-kd/m)*x[7] + (k*cm/m)*(cos(x[3])*sin(x[5])*sin(x[4])- cos(x[5])*sin(x[3]))*(u[0]**2 + u[1]**2 + u[2]**2+u[3]**2) + dwy
+    dx7 = (k*cm/m)*(cos(x[3])*sin(x[5])*sin(x[4])- cos(x[5])*sin(x[3]))*(u[0]**2 + u[1]**2 + u[2]**2+u[3]**2) + dwy  #(-kd/m)*x[7] + 
 
-    dx8 = (-kd/m)*x[8] -g + (k*cm/m)*(cos(x[4])*cos(x[3]))*(u[0]**2 + u[1]**2 + u[2]**2+u[3]**2) + dwz
+    dx8 =  -g + (k*cm/m)*(cos(x[4])*cos(x[3]))*(u[0]**2 + u[1]**2 + u[2]**2+u[3]**2) + dwz      #(-kd/m)*x[8]
 
     dx9 = (l*k*cm/Ixx)*(u[0]**2-u[1]**2-u[2]**2 + u[3]**2)-((Iyy-Izz)/Ixx)*x[10]*x[11]
 
