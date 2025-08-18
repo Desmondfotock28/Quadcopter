@@ -1,0 +1,462 @@
+import numpy as np
+import time
+import matplotlib.pyplot as plt
+from casadi import *
+from control import dare
+from scipy.linalg import block_diag 
+
+
+#Feedback Linearisation for Quadcopter model 
+
+def plot_3d_trajectory(t , w_pred):
+    """
+    Plot a 3D trajectory given predicted positions.
+
+    Parameters:
+    x_pred (numpy.ndarray): Predicted trajectory positions as an (N, 3) array, 
+                            where each row represents [x, y, z].
+
+    Returns:
+    None
+    """
+    # Extract x, y, z values
+    x_pred_vals = w_pred[:, 0]  # x values
+    y_pred_vals = w_pred[:, 4]  # y values
+    z_pred_vals = w_pred[:, 8]  # z values
+
+    # Create a 3D figure and axis
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+
+    # Plot the predicted trajectory
+    t = np.array(t) 
+    ax.plot(x_pred_vals, y_pred_vals, z_pred_vals, label="Predicted Trajectory", color='b', linestyle='--')
+    xr =  np.sin(np.pi * t/10) 
+    yr = np.cos(np.pi * t/10) + -1.0
+    zr = np.sin(np.pi * t/10) + t
+    ax.plot(xr, yr, zr, label="Reference Trajectory", color='r', linestyle='--')
+
+    # Labels and legend
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.set_zlabel('Z')
+    ax.legend()
+
+    # Show the plot
+    plt.show()
+
+def plot_xyz_subplots(t, x_pred):
+    """
+    Plot distances in X, Y, and Z as three separate subplots.
+
+    Parameters:
+    t (array-like): Time steps
+    x_pred (numpy.ndarray): Predicted positions as an (N,3) array [x, y, z]
+
+    Returns:
+    None
+    """
+    # Extract x, y, z values
+    x_vals = x_pred[:, 0]
+    y_vals = x_pred[:, 4]
+    z_vals = x_pred[:, 8]
+
+    # Reference trajectory (example)
+    t = np.array(t)
+    xr = np.sin(np.pi * t / 10)
+    yr = np.cos(np.pi * t / 10) - 1.0
+    zr = np.sin(np.pi * t / 10) + t
+
+    # Create subplots
+    fig, axs = plt.subplots(3, 1, figsize=(8, 10), sharex=True)
+
+    # Plot X
+    axs[0].plot(t, x_vals, label="Predicted X", color='b')
+    axs[0].plot(t, xr, label="Reference X", color='r', linestyle='--')
+    axs[0].set_ylabel("X")
+    axs[0].legend()
+    axs[0].grid(True)
+
+    # Plot Y
+    axs[1].plot(t, y_vals, label="Predicted Y", color='b')
+    axs[1].plot(t, yr, label="Reference Y", color='r', linestyle='--')
+    axs[1].set_ylabel("Y")
+    axs[1].legend()
+    axs[1].grid(True)
+
+    # Plot Z
+    axs[2].plot(t, z_vals, label="Predicted Z", color='b')
+    axs[2].plot(t, zr, label="Reference Z", color='r', linestyle='--')
+    axs[2].set_ylabel("Z")
+    axs[2].set_xlabel("Time")
+    axs[2].legend()
+    axs[2].grid(True)
+
+    plt.tight_layout()
+    plt.show()
+
+def reference_trajectory(t, omega=np.pi, a=0.1):
+    """
+    Generate the reference trajectory for a given time array.
+
+    Parameters:
+    - t: np.ndarray or float, time (can be a single value or an array of values)
+    - omega: float, angular frequency (default: 1.0)
+    - a: float, slope of the z-direction trajectory (default: 0.1)
+
+    Returns:
+    - xr: np.ndarray, reference x-coordinate at time t
+    - yr: np.ndarray, reference y-coordinate at time t
+    - zr: np.ndarray, reference z-coordinate at time t
+    """
+    # Compute reference trajectory
+        # Compute reference trajectory
+    xr = np.sin(omega * t/10) 
+    yr = np.cos(omega * t/10)-1.0
+    zr = np.sin(omega * t/10) + t
+
+  
+    xref = vertcat(xr, np.zeros(3), yr, np.zeros(3), zr, np.zeros(5))
+  
+    return xref
+
+def shift(T, t0, x0, u, f):
+    """
+    Shift the state and time forward by one timestep.
+
+    Args:
+        T (float): The timestep.
+        t0 (float): The current time.
+        x0 (np.array): The current state.
+        u (np.array): The control inputs.
+        f (Function): The system function.
+
+    Returns:
+        tuple: The updated time, state, and control inputs.
+    """
+    st = x0
+    con = u[0, :]
+    #f_value = f(st, con)
+    #st = st + T * f_value
+    st = f(st, con)
+    
+    x0 = np.array(st.full()).flatten()
+
+    t0 = t0 + T
+    u0 = np.vstack([u[1:], u[-1, :]])
+
+    return t0, x0, u0
+
+
+# Continuous-time system matrices  W_dot = AW + BV
+# important note  x = w1 , y=w5 , z=w9, psi = w13
+A1 = np.array([
+    [0.0, 1.0, 0.0, 0.0],
+    [0.0, 0.0, 1.0, 0.0],
+    [0.0, 0.0, 0.0, 1.0],
+    [0.0, 0.0, 0.0, 0.0],
+])
+
+A2 = np.array([
+    [0.0, 1.0],
+    [0.0, 0.0],
+])
+
+A = block_diag(A1, A1, A1, A2)
+
+B = np.array([
+    [0, 0, 0, 0],  # 1
+    [0, 0, 0, 0],  # 2
+    [0, 0, 0, 0],  # 3
+    [1, 0, 0, 0],  # 4
+    [0, 0, 0, 0],  # 5
+    [0, 0, 0, 0],  # 6
+    [0, 0, 0, 0],  # 7
+    [0, 1, 0, 0],  # 8
+    [0, 0, 0, 0],  # 9
+    [0, 0, 0, 0],  # 10
+    [0, 0, 0, 0],  # 11
+    [0, 0, 1, 0],  # 12
+    [0, 0, 0, 0],  # 13
+    [0, 0, 0, 1],  # 14
+], dtype=float)
+
+# Discrete-time system matrices using matrix exponential
+
+
+# Discretization parameters
+dt = 0.1
+
+A_d = np.eye(A.shape[0]) + dt * A
+B_d = dt * B
+
+#simulating system without control 
+
+def xdot(w,v):
+    return np.dot(A,w)+np.dot(B,v)
+
+# test feedback linearise model 
+def integrateOpenLoop(w0, V, steps, dt=1e-3):
+    W = np.empty([w0.size, steps+1])
+    W[:,0]=w0
+    for t in range(steps):
+        w = W[:, t]               #current state
+        v  = np.array([0, 0, 1, 0])   # positive v_z np.ones((4,))  # no control              #current control
+        wnext = w + xdot(w,v)*dt  #Euler integrator
+        W[:, t+1] = wnext
+    return W
+
+#V = np.zeros((4,))  # no control
+#w0 = np.zeros((14,))
+#w0[8] = 0.0   # z = w9 = 2m
+#w0[1] = 3.0   # x_dot = w1 = 3m/s
+#steps = 5000
+#W = integrateOpenLoop(w0, V, steps)
+#time = np.linspace(0, steps*dt, steps+1)
+
+
+
+Ts = 0.1    #sampling time in [s]
+
+N =  10      #prediction horizon
+
+tf= 1
+
+# State and input dimensions 
+nw = A.shape[1]
+nv = B.shape[1]
+
+# Define the CasADi system function using discrete-time matrices
+w = SX.sym("w", nw)
+v = SX.sym("v", nv)
+
+w_next = A_d @ w + B_d @ v
+
+# Create the CasADi function
+system = Function("sys", [w, v], [w_next])
+
+# Define initial state
+
+w0 = np.zeros(nw) 
+
+# Define cost function parameters
+
+# Declear empty sys matrices
+V = SX.sym('V',nv,N)               # Decision variables (controls)
+
+#Parameters:initial state(x0)
+
+P = SX.sym('P',nw + 1, 1) 
+
+W= SX.sym('W',nw,(N+1)) # Decision variables (states)
+
+Q = np.diag([
+        10,  # w1 (x-position)
+        10,  # w2 
+        10,  # w3 
+        10,   # w4 
+        10,   # w5 (y-position)
+        10,   # w6 
+        10,   # w7 
+        10,   # w8 
+        10,   # w9 (altitude)
+        10,   # w10 
+        10,   # w11 
+        10,    # w12 
+        10,   # w13 (yaw )
+        10    #w14
+    ])
+	
+R = 0.01
+R = R*np.diag(np.ones(nv))
+
+# Define the stage cost and terminal cost 
+stage_cost =  bilin(Q, w) +  bilin(R, v)
+
+stage_cost_fcn = Function("cost", [w, v], [stage_cost])
+
+# Terminal cost (solution to Riccati equation)
+S, L, K = dare(A_d, B_d, Q, R)
+
+# Stability Analysis of MPC
+S = np.array(S)
+K = -np.array(K)
+
+# Closed-loop system
+A_cl = A_d + B_d @ K
+
+# Eigenvalues of close loop
+#print(np.linalg.eig(A_cl)[0])
+#terminal_cost = bilin(S, w)
+terminal_cost = 40*mtimes(w.T, w)
+
+terminal_cost_fcn = Function("T_cost", [w], [terminal_cost])
+
+# Input constraints
+lb_v = np.array([-1.0, -0.05, -0.05, -0.05])    #need to check the bound for the transfrom system
+ub_v = np.array([1.0, 0.05 , 0.05, 0.05])
+vmax = 1.0
+Opt_Vars = vertcat(
+    reshape(W, -1, 1),
+    reshape(V, -1, 1)
+)
+
+def objective_cost():
+    J = 0.0
+    for i in range(N):
+        dw = W[:, i+1]-reference_trajectory(P[nw:] + i*Ts)
+        dv = V[:, i]-vmax
+        J += stage_cost_fcn(dw, dv)
+    J += terminal_cost_fcn((W[:, -1]-reference_trajectory(P[nw:] + N*Ts)))
+    return J
+
+def equality_constraints():
+    g = []  # Equality constraints initialization
+    g.append(W[:, 0] - P[:nw])  # Initial state constraint
+  
+    for i in range(N):
+        st = W[:, i]
+        cons = V[:, i] 
+        st_next_euler = system(st,cons)
+        st_next = W[:, i+1]
+        g.append(st_next -  st_next_euler)
+    #terminal set constraints 
+    #g.append(X[:, -1]-reference_trajectory(P[nx:] + N*Ts))
+    return g
+
+def inequality_constraints():
+    
+    hv = []   # Box constraints on active inputs 
+    for i in range(N):
+        hv.append(lb_v - V[:, i]) 
+        hv.append(V[:, i] - ub_v)
+    return  hv 
+
+def Pi_opt_formulation():
+    J = objective_cost()
+    g = equality_constraints()
+    G = vertcat(*g)
+    hv = inequality_constraints()
+    Hv = vertcat(*hv)
+    G_vcsd = vertcat(*g, *hv)
+    lbg = [0] * G.shape[0] + [-np.inf] * (Hv.shape[0])
+    ubg = [0] * G.shape[0] + [0] * (Hv.shape[0])
+    lbg_vcsd = vertcat(*lbg)
+    ubg_vcsd = vertcat(*ubg)
+
+    opts_setting = {
+        "ipopt.max_iter": 500,
+        "ipopt.print_level": 4,
+        "print_time": 1,
+        "ipopt.acceptable_tol": 1e-6,
+        "ipopt.acceptable_obj_change_tol": 1e-6,
+    }
+    vnlp_prob = {
+        "f": J,
+        "x": Opt_Vars,
+        "p": vertcat(P),
+        "g": G_vcsd,
+    }
+    pisolver = nlpsol("vsolver", "ipopt", vnlp_prob)
+
+    return lbg_vcsd, ubg_vcsd, G_vcsd, pisolver 
+
+lbg_vcsd, ubg_vcsd, G_vcsd , pisolver = Pi_opt_formulation()
+
+
+def run_open_loop_mpc(w0, t0 , v0 , solver ):
+      # Initial control inputs and state
+    v_st_0 = np.tile(v0, (N, 1))
+    w_st_0 = np.tile(w0, (N + 1, 1)).T
+    args_p = np.concatenate([w0, t0])  # Ensure x0 and Tr are concatenated properly
+    args_p= vertcat(*args_p)
+    args_w0 = np.concatenate([w_st_0.T.reshape(-1), v_st_0.T.reshape(-1)])
+   # Solve the optimization problem
+    sol = solver(x0=args_w0, p=args_p, lbg=lbg_vcsd, ubg=ubg_vcsd)
+    vsol = sol['x'][nw * (N+1):]
+    # Extract the control inputs from the solution
+    v = np.array(sol['x'][nw * (N+1):]).reshape((N, nv))
+
+    #extract predicted state 
+    w_pred = np.array(sol['x'][:nw * (N+1)]).reshape((N+1, nw))
+
+    # Convert lists to numpy arrays for easier handling
+    w_pred = np.array(w_pred) 
+    v = np.array(v) 
+    return w_pred, v , vsol
+
+v0 =  np.array([1.0, 0.05 , 0.05, 0.05])
+
+# Example usage:
+#random_states = generate_random_states(num_samples=5)
+#x0 = random_states[0]
+
+w0 = np.zeros(14)  
+#x0[:1]= 1
+#x0[:3] += np.random.uniform(low=-2.0, high= 2.0, size=3)
+Tr =np.array([0.0])
+w_pred, v_ol, vsol = run_open_loop_mpc(w0, Tr, v0 , pisolver)
+
+t =  np.linspace(0, N*Ts, N+1)
+
+plot_3d_trajectory(t, w_pred)
+
+
+def run_closed_loop_mpc(w0, Tr, Ts, sim_time, solver):
+   
+    v0 =  np.array([1.0, 0.05 , 0.05, 0.05])
+    t0 = 0
+    nw = w0.shape[0]
+    t = [t0]
+    w_ol = np.zeros((nw, int(sim_time / Ts) + 1))  # Open loop predicted states
+    w_ol = [w0]
+    mpc_i = 0
+    w_cl = []    # Store predicted states in the closed loop
+    v_cl = []    # Store control inputs in the closed loop
+
+    v_st_0 = np.tile(v0, (N, 1))
+    w_st_0 = np.tile(w0, (N + 1, 1)).T
+    args_p = np.concatenate([w0, Tr])  # Ensure w0 and Tr are concatenated properly
+    #args_p = np.array([x0])
+    args_p = vertcat(*args_p)
+    cost = []
+    time_full = []
+    V_open_loop = []
+    while  mpc_i < int(sim_time / Ts):
+        args_p[:nw] = w0
+        args_p[nw:] = np.array([t0])
+        args_w0 = np.concatenate([w_st_0.T.reshape(-1), v_st_0.T.reshape(-1)])
+        start_time = time.time()
+        sol = solver(x0=args_w0, p=args_p, lbg=lbg_vcsd, ubg=ubg_vcsd)
+        solver_time = time.time()-start_time
+        time_full.append(solver_time)
+        w_opt = sol['x']
+        wsol = w_opt[:nw * (N+1)]
+        vsol = w_opt[nw * (N+1):]
+        V_open_loop.append(vsol)
+        cost.append(sol['f'])
+        v = np.array(sol['x'][nw * (N+1):]).reshape((N, nv))
+        w_pred = np.array(w_opt[:nw * (N+1)]).reshape((N+1, nw))
+        w_cl.append(w_pred)
+        v_cl.append(v[0, :])
+        t.append(t0)
+        t0, w0, v0 =shift(Ts, t0, w0, v, system)
+    
+        w_ol.append(w0)
+        w_st_0 = np.vstack([wsol[nw:],  wsol[N*nw:]])
+        v_st_0 = np.vstack([vsol[nv:],  vsol[(N-1)*nv:]])
+
+        mpc_i += 1
+
+    w_ol = np.array(w_ol)
+    v_cl = np.array(v_cl)
+    return w_ol, v_cl, t, cost , time_full, V_open_loop
+
+# Run the closed-loop MPC for 10s
+Ts = 0.1
+sim_time = 100
+w_ol, v_cl, t, cost_n, time_full, V_open_loop = run_closed_loop_mpc(w0, Tr, Ts, sim_time, pisolver)
+
+plot_3d_trajectory(t, w_ol)
+
+plot_xyz_subplots(t, w_ol)
