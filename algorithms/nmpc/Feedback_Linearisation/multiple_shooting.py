@@ -34,6 +34,11 @@ def plot_3d_trajectory(t , w_pred):
     xr =  np.sin(np.pi * t/10) 
     yr = np.cos(np.pi * t/10) + -1.0
     zr = np.sin(np.pi * t/10) + t
+
+    #xr = 0.5 + 0.2* np.cos(t)
+    #yr = 0.5 + 0.2*np.sin(t) 
+    #zr = 1.1 + 0.1*t
+
     ax.plot(xr, yr, zr, label="Reference Trajectory", color='r', linestyle='--')
 
     # Labels and legend
@@ -66,6 +71,10 @@ def plot_xyz_subplots(t, x_pred):
     xr = np.sin(np.pi * t / 10)
     yr = np.cos(np.pi * t / 10) - 1.0
     zr = np.sin(np.pi * t / 10) + t
+    
+    #xr = 0.5 + 0.2* np.cos(t)
+    #yr = 0.5 + 0.2*np.sin(t) 
+    #zr = 1.1 + 0.1*t
 
     # Create subplots
     fig, axs = plt.subplots(3, 1, figsize=(8, 10), sharex=True)
@@ -114,13 +123,16 @@ def reference_trajectory(t, omega=np.pi, a=0.1):
     xr = np.sin(omega * t/10) 
     yr = np.cos(omega * t/10)-1.0
     zr = np.sin(omega * t/10) + t
-
-  
+    
+   
+    #xr = 0.5 + 0.2* np.cos(omega * t)
+    #yr = 0.5 + 0.2*np.sin(omega * t) 
+    #zr = 1.1 + a*t
     xref = vertcat(xr, np.zeros(3), yr, np.zeros(3), zr, np.zeros(5))
-  
+
     return xref
 
-def shift(T, t0, x0, u, f):
+def shift(T, t0, x0, u, d,  f):
     """
     Shift the state and time forward by one timestep.
 
@@ -129,6 +141,7 @@ def shift(T, t0, x0, u, f):
         t0 (float): The current time.
         x0 (np.array): The current state.
         u (np.array): The control inputs.
+        d (np.array): Disturnbance.
         f (Function): The system function.
 
     Returns:
@@ -138,7 +151,7 @@ def shift(T, t0, x0, u, f):
     con = u[0, :]
     #f_value = f(st, con)
     #st = st + T * f_value
-    st = f(st, con)
+    st = f(st, con , d)
     
     x0 = np.array(st.full()).flatten()
 
@@ -185,10 +198,11 @@ B = np.array([
 
 
 # Discretization parameters
-dt = 0.1
+dt = 0.3
 
 A_d = np.eye(A.shape[0]) + dt * A
 B_d = dt * B
+
 
 #simulating system without control 
 
@@ -216,24 +230,36 @@ def integrateOpenLoop(w0, V, steps, dt=1e-3):
 
 
 
-Ts = 0.1    #sampling time in [s]
+Ts = 0.3   #sampling time in [s]
 
-N =  10      #prediction horizon
+N = 10    #prediction horizon
 
-tf= 1
+tf = 3
 
 # State and input dimensions 
 nw = A.shape[1]
 nv = B.shape[1]
 
+# Disturbance injection matrix: injects bias into rows 4, 8, 12
+dist_indices = [3, 7, 11]
+nd = len(dist_indices)
+
+Bd_dist = np.zeros((nw, nd))
+for j, idx in enumerate(dist_indices):
+    Bd_dist[idx, j] = 1.0
+
+Bd_dist = dt*Bd_dist
 # Define the CasADi system function using discrete-time matrices
 w = SX.sym("w", nw)
+
 v = SX.sym("v", nv)
 
-w_next = A_d @ w + B_d @ v
+d = SX.sym("d", nd)
+
+w_next = A_d @ w + B_d @ v + Bd_dist@d   #need to confirm logic 
 
 # Create the CasADi function
-system = Function("sys", [w, v], [w_next])
+system = Function("sys", [w, v , d], [w_next])
 
 # Define initial state
 
@@ -247,31 +273,37 @@ V = SX.sym('V',nv,N)               # Decision variables (controls)
 #Parameters:initial state(x0)
 
 P = SX.sym('P',nw + 1, 1) 
+P_d = SX.sym('P_d',nd, 1) 
 
 W= SX.sym('W',nw,(N+1)) # Decision variables (states)
 
+D = SX.sym("D", nd, N+1)   # Disturbance trajectory
+
 Q = np.diag([
         10,  # w1 (x-position)
-        10,  # w2 
-        10,  # w3 
-        10,   # w4 
+        2,  # w2 
+        2,  # w3 
+        2,   # w4 
         10,   # w5 (y-position)
-        10,   # w6 
-        10,   # w7 
-        10,   # w8 
+        2,   # w6 
+        2,   # w7 
+        2,   # w8 
         10,   # w9 (altitude)
-        10,   # w10 
-        10,   # w11 
-        10,    # w12 
+        2,   # w10 
+        2,   # w11 
+        2,    # w12 
         10,   # w13 (yaw )
         10    #w14
     ])
-	
+
 R = 0.01
 R = R*np.diag(np.ones(nv))
 
+#Qd = 1e-6 * np.eye(nd)
+#+ bilin(Qd ,d) +  , d
+
 # Define the stage cost and terminal cost 
-stage_cost =  bilin(Q, w) +  bilin(R, v)
+stage_cost =  0.5*(bilin(Q, w) +  bilin(R, v))
 
 stage_cost_fcn = Function("cost", [w, v], [stage_cost])
 
@@ -287,8 +319,8 @@ A_cl = A_d + B_d @ K
 
 # Eigenvalues of close loop
 #print(np.linalg.eig(A_cl)[0])
-#terminal_cost = bilin(S, w)
-terminal_cost = 40*mtimes(w.T, w)
+terminal_cost = bilin(S, w)
+#terminal_cost = 100*mtimes(w.T, w)
 
 terminal_cost_fcn = Function("T_cost", [w], [terminal_cost])
 
@@ -296,18 +328,23 @@ terminal_cost_fcn = Function("T_cost", [w], [terminal_cost])
 lb_v = np.array([-1.0, -0.05, -0.05, -0.05])    #need to check the bound for the transfrom system
 ub_v = np.array([1.0, 0.05 , 0.05, 0.05])
 vmax = 1.0
+
 Opt_Vars = vertcat(
     reshape(W, -1, 1),
-    reshape(V, -1, 1)
+    reshape(V, -1, 1),
+    reshape(D, -1, 1)
 )
+
 
 def objective_cost():
     J = 0.0
     for i in range(N):
         dw = W[:, i+1]-reference_trajectory(P[nw:] + i*Ts)
-        dv = V[:, i]-vmax
+        dv = V[:, i]      #-vmax
+        #dd = D[:, i]
+
         J += stage_cost_fcn(dw, dv)
-    J += terminal_cost_fcn((W[:, -1]-reference_trajectory(P[nw:] + N*Ts)))
+    J += terminal_cost_fcn((W[:, -1]-reference_trajectory(P[nw:] + N*Ts)))      #+  bilin(Qd ,D[:, -1]) 
     return J
 
 def equality_constraints():
@@ -317,11 +354,15 @@ def equality_constraints():
     for i in range(N):
         st = W[:, i]
         cons = V[:, i] 
-        st_next_euler = system(st,cons)
+        d_i = D[:, i]
+        #st_next_euler = system(st,cons)
+        st_next_model =  A_d @ st + B_d @ cons + Bd_dist @ d_i   # (need to clean this)
         st_next = W[:, i+1]
-        g.append(st_next -  st_next_euler)
+        g.append(st_next -  st_next_model)
+         # enforce disturbance stays constant
+        g.append(D[:, i+1] - d_i)   
     #terminal set constraints 
-    #g.append(X[:, -1]-reference_trajectory(P[nx:] + N*Ts))
+    #g.append(W[:, -1]-reference_trajectory(P[nw:] + N*Ts))
     return g
 
 def inequality_constraints():
@@ -354,7 +395,7 @@ def Pi_opt_formulation():
     vnlp_prob = {
         "f": J,
         "x": Opt_Vars,
-        "p": vertcat(P),
+        "p": vertcat(P, P_d),
         "g": G_vcsd,
     }
     pisolver = nlpsol("vsolver", "ipopt", vnlp_prob)
@@ -364,18 +405,21 @@ def Pi_opt_formulation():
 lbg_vcsd, ubg_vcsd, G_vcsd , pisolver = Pi_opt_formulation()
 
 
+
 def run_open_loop_mpc(w0, t0 , v0 , solver ):
       # Initial control inputs and state
+    d0 = np.zeros(nd)
     v_st_0 = np.tile(v0, (N, 1))
     w_st_0 = np.tile(w0, (N + 1, 1)).T
-    args_p = np.concatenate([w0, t0])  # Ensure x0 and Tr are concatenated properly
+    d_st_0 = np.tile(d0, (N + 1, 1)).T
+    args_p = np.concatenate([w0, t0 , d0])  # Ensure x0 and Tr are concatenated properly
     args_p= vertcat(*args_p)
-    args_w0 = np.concatenate([w_st_0.T.reshape(-1), v_st_0.T.reshape(-1)])
+    args_w0 = np.concatenate([w_st_0.T.reshape(-1), v_st_0.T.reshape(-1), d_st_0.T.reshape(-1)])
    # Solve the optimization problem
     sol = solver(x0=args_w0, p=args_p, lbg=lbg_vcsd, ubg=ubg_vcsd)
-    vsol = sol['x'][nw * (N+1):]
+    vsol = sol['x'][nw * (N+1):nw * (N+1) + nv*N]
     # Extract the control inputs from the solution
-    v = np.array(sol['x'][nw * (N+1):]).reshape((N, nv))
+    v = np.array(sol['x'][nw * (N+1):nw * (N+1) + nv*N]).reshape((N, nv))
 
     #extract predicted state 
     w_pred = np.array(sol['x'][:nw * (N+1)]).reshape((N+1, nw))
@@ -405,6 +449,7 @@ plot_3d_trajectory(t, w_pred)
 def run_closed_loop_mpc(w0, Tr, Ts, sim_time, solver):
    
     v0 =  np.array([1.0, 0.05 , 0.05, 0.05])
+    d0 = np.zeros(nd)
     t0 = 0
     nw = w0.shape[0]
     t = [t0]
@@ -416,7 +461,8 @@ def run_closed_loop_mpc(w0, Tr, Ts, sim_time, solver):
 
     v_st_0 = np.tile(v0, (N, 1))
     w_st_0 = np.tile(w0, (N + 1, 1)).T
-    args_p = np.concatenate([w0, Tr])  # Ensure w0 and Tr are concatenated properly
+    d_st_0 = np.tile(d0, (N + 1, 1)).T
+    args_p = np.concatenate([w0, Tr, d0])  # Ensure w0 and Tr are concatenated properly
     #args_p = np.array([x0])
     args_p = vertcat(*args_p)
     cost = []
@@ -424,27 +470,33 @@ def run_closed_loop_mpc(w0, Tr, Ts, sim_time, solver):
     V_open_loop = []
     while  mpc_i < int(sim_time / Ts):
         args_p[:nw] = w0
-        args_p[nw:] = np.array([t0])
-        args_w0 = np.concatenate([w_st_0.T.reshape(-1), v_st_0.T.reshape(-1)])
+        args_p[nw:nw+1] = np.array([t0])
+        args_p[nw + 1:] = d0
+        args_w0 = np.concatenate([w_st_0.T.reshape(-1), v_st_0.T.reshape(-1), d_st_0.T.reshape(-1)])
         start_time = time.time()
         sol = solver(x0=args_w0, p=args_p, lbg=lbg_vcsd, ubg=ubg_vcsd)
         solver_time = time.time()-start_time
         time_full.append(solver_time)
         w_opt = sol['x']
-        wsol = w_opt[:nw * (N+1)]
-        vsol = w_opt[nw * (N+1):]
+        Dsol =  w_opt[nw * (N+1) + nv*N:]
+        d0  = Dsol[:nd]
+        wsol = np.array(w_opt[:nw*(N+1)]).reshape(N+1, nw)
+        vsol = np.array(w_opt[nw*(N+1): nw*(N+1)+nv*N]).reshape(N, nv)
+        dsol = np.array(w_opt[nw*(N+1)+nv*N:]).reshape(N+1, nd)
         V_open_loop.append(vsol)
         cost.append(sol['f'])
-        v = np.array(sol['x'][nw * (N+1):]).reshape((N, nv))
+        v = np.array(sol['x'][nw * (N+1):nw * (N+1) + nv*N]).reshape((N, nv))
         w_pred = np.array(w_opt[:nw * (N+1)]).reshape((N+1, nw))
         w_cl.append(w_pred)
         v_cl.append(v[0, :])
         t.append(t0)
-        t0, w0, v0 =shift(Ts, t0, w0, v, system)
+       
+        t0, w0, v0 =shift(Ts, t0, w0, v, d0,  system)
     
         w_ol.append(w0)
-        w_st_0 = np.vstack([wsol[nw:],  wsol[N*nw:]])
-        v_st_0 = np.vstack([vsol[nv:],  vsol[(N-1)*nv:]])
+        w_st_0 = np.vstack([wsol[1:],  wsol[-1:]])
+        v_st_0 = np.vstack([vsol[1:],  vsol[-1:]])
+        d_st_0 = np.vstack([dsol[1:],  dsol[-1:]])
 
         mpc_i += 1
 
@@ -453,9 +505,13 @@ def run_closed_loop_mpc(w0, Tr, Ts, sim_time, solver):
     return w_ol, v_cl, t, cost , time_full, V_open_loop
 
 # Run the closed-loop MPC for 10s
-Ts = 0.1
+
 sim_time = 100
-w_ol, v_cl, t, cost_n, time_full, V_open_loop = run_closed_loop_mpc(w0, Tr, Ts, sim_time, pisolver)
+d0 = np.zeros(nd)
+
+w_ol, v_cl, t, cost_n, time_full, V_open_loop = run_closed_loop_mpc(w0, Tr,  Ts, sim_time, pisolver)
+
+print(np.mean(time_full))
 
 plot_3d_trajectory(t, w_ol)
 
