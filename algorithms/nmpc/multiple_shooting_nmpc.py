@@ -34,6 +34,11 @@ def plot_3d_trajectory(t , x_pred):
     xr =  np.sin(np.pi * t/10) 
     yr = np.cos(np.pi * t/10) + -1.0
     zr = np.sin(np.pi * t/10) + t
+
+    #xr = 0.5 + 0.2* np.cos(t)
+    #yr = 0.5 + 0.2*np.sin(t) 
+    #zr = 1.1 + 0.1*t
+
     ax.plot(xr, yr, zr, label="Reference Trajectory", color='r', linestyle='--')
 
     # Labels and legend
@@ -66,6 +71,10 @@ def plot_xyz_subplots(t, x_pred):
     xr = np.sin(np.pi * t / 10)
     yr = np.cos(np.pi * t / 10) - 1.0
     zr = np.sin(np.pi * t / 10) + t
+
+    #xr = 0.5 + 0.2* np.cos(t)
+    #yr = 0.5 + 0.2*np.sin(t) 
+    #zr = 1.1 + 0.1*t
 
     # Create subplots
     fig, axs = plt.subplots(3, 1, figsize=(8, 10), sharex=True)
@@ -286,6 +295,10 @@ def reference_trajectory(t, omega=np.pi, a=0.1):
     xr =  np.sin(omega * t/10) 
     yr = np.cos(omega * t/10) + -1.0
     zr = np.sin(omega * t/10) + t
+
+    #xr = 0.5 + 0.2* np.cos(t)
+    #yr = 0.5 + 0.2*np.sin(t) 
+    #zr = 1.1 + 0.1*t
     xref = vertcat(xr, yr, zr, np.zeros(9))
     return xref
 
@@ -508,8 +521,10 @@ def run_closed_loop_mpc(x0, Tr, Ts, sim_time, solver):
 
 # Run the closed-loop MPC for 10s
 Ts = 0.3
-sim_time = 100
+sim_time = 40
 x_ol, u_cl, t, cost_n, time_full, U_open_loop = run_closed_loop_mpc(x0, Tr, Ts, sim_time, pisolver)
+
+print(np.mean(time_full))
 
 plot_3d_trajectory(t, x_ol)
 
