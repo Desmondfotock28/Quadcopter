@@ -6,7 +6,7 @@ from control import dare
 from scipy.linalg import block_diag 
 
 
-#Feedback Linearisation for Quadcopter model 
+#Feedback Linearisation for Quadcopter model with constant disturbance
 
 def plot_3d_trajectory(t , w_pred):
     """
@@ -183,8 +183,6 @@ B = np.array([
     [0, 0, 0, 1],  # 14
 ], dtype=float)
 
-# Discrete-time system matrices using matrix exponential
-
 
 # Discretization parameters
 dt = 0.3
@@ -221,23 +219,27 @@ def integrateOpenLoop(w0, V, steps, dt=1e-3):
 
 Ts = 0.3   #sampling time in [s]
 
-N = 100    #prediction horizon
+N = 10    #prediction horizon
 
-tf = 30
+tf = 3
 
 # State and input dimensions 
 nw = A.shape[1]
 nv = B.shape[1]
 
-# Disturbance injection matrix: injects bias into rows 4, 8, 12
-dist_indices = [3, 7, 11]
+# Disturbance injection matrix: injects bias into rows 2, 6, 10
+dist_indices = [1, 5, 9]
 nd = len(dist_indices)
+
+
+d_const = np.array([0.12, -0.08, 0.05])   # (nd,)
 
 Bd_dist = np.zeros((nw, nd))
 for j, idx in enumerate(dist_indices):
     Bd_dist[idx, j] = 1.0
 
 Bd_dist = dt*Bd_dist
+B_const_dist = Bd_dist  # for now 
 # Define the CasADi system function using discrete-time matrices
 w = SX.sym("w", nw)
 
@@ -245,7 +247,7 @@ v = SX.sym("v", nv)
 
 d = SX.sym("d", nd)
 
-w_next = A_d @ w + B_d @ v + Bd_dist@d   #need to confirm logic 
+w_next = A_d @ w + B_d @ v + Bd_dist@d + B_const_dist @ d_const  #need to confirm logic 
 
 # Create the CasADi function
 system = Function("sys", [w, v , d], [w_next])

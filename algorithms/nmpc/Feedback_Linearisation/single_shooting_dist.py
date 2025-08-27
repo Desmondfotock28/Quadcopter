@@ -229,18 +229,19 @@ dt = 0.3
 A_d = np.eye(A.shape[0]) + dt * A
 B_d = dt * B
 
-Ts = 0.3   #sampling time in [s]
+
+Ts = 0.1   #sampling time in [s]
 
 N =  10    #prediction horizon
 
-tf = 3
+tf = 1
 
 # State and input dimensions 
 nw = A.shape[1]
 nv = B.shape[1]
 
-# Disturbance injection matrix: injects bias into rows 4, 8, 12
-dist_indices = [3, 7, 11]
+# Disturbance injection matrix: injects bias into rows 2, 6, 10
+dist_indices = [1, 5, 10]
 nd = len(dist_indices)
 
 Bd_dist = np.zeros((nw, nd))
@@ -248,6 +249,9 @@ for j, idx in enumerate(dist_indices):
     Bd_dist[idx, j] = 1.0
 
 Bd_dist = dt*Bd_dist
+
+B_const_dist = Bd_dist  # for now 
+d_const = np.array([0.12, -0.08, 0.05])   # (nd,)
  
 nd = Bd_dist.shape[1]
 
@@ -307,6 +311,7 @@ Tr = SX.sym("Tr", 1)
 P = SX.sym('P',nw + 1, 1) 
 
 t0 = 0.0
+
 
 Wref = stack_reference(reference_trajectory, Tr, Ts, N)
 
@@ -462,10 +467,12 @@ def run_closed_loop_mpc(w0, Ts, sim_time, solver):
         zsol = sol['x']
         #construct vsol 
         vsol = zsol[:N*nv]
+        V_act = np.array(vsol).reshape((N, nv))
         dsol = zsol[N*nv:]
         # construct xsol 
         wsol = Sx@ w0 + Su @vsol + Sd@dsol
-        w0 =wsol[nw:2*nw]
+        #w0 =wsol[nw:2*nw]
+        w0  = A_d @ w0  + B_d @ V_act[0,:] + Bd_dist@ dsol   + B_const_dist @ d_const  
         w_cl.append(w0)
         w_pred = np.array(wsol).reshape((N+1, nw))
         t0 = t0 + Ts
@@ -479,7 +486,7 @@ def run_closed_loop_mpc(w0, Ts, sim_time, solver):
     w_cl = np.array(vertcat(*w_cl)).reshape((mpc_i +1, nw))
     return w_ol, w_cl, time_full,  t
 
-sim_time = 40
+sim_time = 60
 
 
 w_ol, w_cl, time_full,  t = run_closed_loop_mpc(w0, Ts, sim_time, pisolver)
