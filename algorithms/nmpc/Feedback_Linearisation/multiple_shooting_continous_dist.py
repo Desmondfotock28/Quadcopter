@@ -457,6 +457,8 @@ def run_closed_loop_mpc(w0, Tr, Ts, sim_time, solver):
     cost = []
     time_full = []
     V_open_loop = []
+    d_actual =[]
+    d_predicted = []
   
 
     while  mpc_i < int(sim_time / Ts):
@@ -480,8 +482,11 @@ def run_closed_loop_mpc(w0, Tr, Ts, sim_time, solver):
        
         w_cl.append(wsol)
         v_cl.append(vsol[0, :])
-
-        d_continous =  get_disturbance(t0)
+        
+        d_continous = np.zeros(nd)
+        #d_continous =  get_disturbance(t0)
+        d_actual.append(d_continous[0])
+        d_predicted.append(d0[1])
 
         t0, w0, v0 =shift(Ts, t0, w0, vsol, d0, d_continous,  system)
 
@@ -496,15 +501,16 @@ def run_closed_loop_mpc(w0, Tr, Ts, sim_time, solver):
 
     w_ol = np.array(w_ol)
     v_cl = np.array(v_cl)
-    
-    return w_ol, v_cl, t, cost , time_full, V_open_loop
+    d_actual = np.array(d_actual)
+    d_predicted = np.array(d_predicted)
+    return w_ol, v_cl, t, cost , time_full, V_open_loop, d_actual,d_predicted
 
 # Run the closed-loop MPC for 10s
 
 sim_time = 40
 d0 = np.zeros(nd)
 
-w_ol, v_cl, t, cost_n, time_full, V_open_loop = run_closed_loop_mpc(w0, Tr,  Ts, sim_time, pisolver)
+w_ol, v_cl, t, cost_n, time_full, V_open_loop,d_actual, d_predicted = run_closed_loop_mpc(w0, Tr,  Ts, sim_time, pisolver)
 
 print(np.mean(time_full))
 
@@ -513,6 +519,30 @@ plot_3d_trajectory(t, w_ol)
 plot_xyz_subplots(t, w_ol)
 
 
+def plot_disturbance_x(t, d):
+    """
+    Plot actual and predicted disturbances in the x-direction over time.
+    
+    Args:
+        t_hist (list or np.array): Time steps
+        d_actual_hist (np.array): Actual disturbances (Nx3 or Nx1)
+        d_pred_hist (np.array): Predicted disturbances (Nx3 or Nx1)
+    """
+    t = np.array(t)
+    
+
+    plt.figure(figsize=(8,4))
+    plt.plot(t, d, 'r', label='Actual dx')
+    plt.xlabel('Time [s]')
+    plt.ylabel('Disturbance [dx]')
+    plt.title('Disturbance in x-direction')
+    plt.grid(True)
+    plt.legend()
+    plt.show()
+
+
+plot_disturbance_x(t[:-1], d_actual)
+plot_disturbance_x(t[:-1], d_predicted.flatten())
 
 """
 cost function for reference traj:

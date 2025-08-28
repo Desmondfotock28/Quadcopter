@@ -31,13 +31,13 @@ def plot_3d_trajectory(t , w_pred):
     # Plot the predicted trajectory
     t = np.array(t) 
     ax.plot(x_pred_vals, y_pred_vals, z_pred_vals, label="Predicted Trajectory", color='b', linestyle='--')
-    #xr =  np.sin(np.pi * t/10) 
-    #yr = np.cos(np.pi * t/10) + -1.0
-    #zr = np.sin(np.pi * t/10) + t
+    xr =  np.sin(np.pi * t/10) 
+    yr = np.cos(np.pi * t/10) + -1.0
+    zr = np.sin(np.pi * t/10) + t
 
-    xr = 0.5 + 0.2* np.cos(t)
-    yr = 0.5 + 0.2*np.sin(t) 
-    zr = 1.1 + 0.1*t
+    #xr = 0.5 + 0.2* np.cos(t)
+    #yr = 0.5 + 0.2*np.sin(t) 
+    #zr = 1.1 + 0.1*t
 
     ax.plot(xr, yr, zr, label="Reference Trajectory", color='r', linestyle='--')
 
@@ -69,13 +69,13 @@ def plot_xyz_subplots(t, x_pred):
 
     # Reference trajectory (example)
     t = np.array(t)
-    #xr = np.sin(np.pi * t / 10)
-    #yr = np.cos(np.pi * t / 10) - 1.0
-    #zr = np.sin(np.pi * t / 10) + t
+    xr = np.sin(np.pi * t / 10)
+    yr = np.cos(np.pi * t / 10) - 1.0
+    zr = np.sin(np.pi * t / 10) + t
 
-    xr = 0.5 + 0.2* np.cos(t)
-    yr = 0.5 + 0.2*np.sin(t) 
-    zr = 1.1 + 0.1*t
+    #xr = 0.5 + 0.2* np.cos(t)
+    #yr = 0.5 + 0.2*np.sin(t) 
+    #zr = 1.1 + 0.1*t
     
     # Create subplots
     fig, axs = plt.subplots(3, 1, figsize=(8, 10), sharex=True)
@@ -124,14 +124,17 @@ def build_prediction_mats(A,B,Bd,N):
         for i in range(k):
             Su[k*nw:(k+1)*nw, i*nv:(i+1)*nv] = Apows[k-1-i] @ B
 
-    # Sd: stack sum_{j=0}^{k-1} A^j Bd  (Sd[0] = 0)
-    Sd = np.zeros((nw*(N+1), nd))
-    cum = np.zeros((nw, nd))
-    for k in range(1, N+1):
-        cum = cum + Apows[k-1] @ Bd
-        Sd[k*nw:(k+1)*nw, :] = cum
+    Sd_var = np.zeros(((N+1)*nw, N*nd))
+     # k = 0 -> w_0 has no disturbance contribution (row zeros)
+    for k in range(1, N+1):            # w_k row
+        row_start = k * nw
+    # d_j for j=0..k-1 contributes Apows[k-1-j] @ Bd_dist
+        for j in range(k):
+           col_start = j * nd
+           Sd_var[row_start:row_start+nw, col_start:col_start+nd] = Apows[k-1-j] @ Bd
 
-    return Sx, Su, Sd
+
+    return Sx, Su, Sd_var
 
 def reference_trajectory(t, omega=np.pi, a=0.1):
     """
@@ -149,18 +152,25 @@ def reference_trajectory(t, omega=np.pi, a=0.1):
     """
     # Compute reference trajectory
         # Compute reference trajectory
-    #xr = np.sin(omega * t/10) 
-    #yr = np.cos(omega * t/10)-1.0
-    #zr = np.sin(omega * t/10) + t
+    xr = np.sin(omega * t/10) 
+    yr = np.cos(omega * t/10)-1.0
+    zr = np.sin(omega * t/10) + t
 
-    xr = 0.5 + 0.2* np.cos(t)
-    yr = 0.5 + 0.2*np.sin(t) 
-    zr = 1.1 + 0.1*t
+    #xr = 0.5 + 0.2* np.cos(t)
+    #yr = 0.5 + 0.2*np.sin(t) 
+    #zr = 1.1 + 0.1*t
     
 
     xref = vertcat(xr, np.zeros(3), yr, np.zeros(3), zr, np.zeros(5))
 
     return xref
+
+def get_disturbance(t):
+
+    dwx = 0.15 * np.sin(np.pi * t / 100) + 0.1 * np.sin(0.2 * t) + 0.03 * np.sin(t)
+    dwy = 0.0
+    dwz = 0.0
+    return np.array([dwx, dwy, dwz])
 
 
 def build_blk_cost(Q, S, R, N):
@@ -296,6 +306,8 @@ K = -np.array(K)
 #computing block diagonal matrices 
 Sx, Su, Sd = build_prediction_mats(A_d, B_d, Bd_dist, N)
 
+print(Sd.shape)
+
 #Hard coded matrices
 Qblk, Rblk = build_blk_cost(Q,S,R,N)
 
@@ -309,7 +321,7 @@ H = np.block([[H11, H12],
 
 v = SX.sym("v", N*nv)
 
-d = SX.sym("d", nd)
+d = SX.sym("d", N*nd)
 
 z = vertcat(v, d)
 
@@ -342,16 +354,18 @@ objective = Function("J", [w, z, Tr], [obj])
 # Input constraints
 lb_v = np.array([-1.0, -0.05, -0.05, -0.05])    #need to check the bound for the transfrom system
 ub_v = np.array([1.0, 0.05 , 0.05, 0.05])
+lb_d= np.array([-2.0, -2.0, -2.0])
+ub_d= np.array([2.0, 2.0, 2.0])
 
-lbz = [lb_v]*N +[-2.0]*3
-ubz =   [ub_v]*N +[2.0]*3
+lbz = [lb_v]*N +[lb_d]*N
+ubz =   [ub_v]*N +[ub_d]*N
 ubz = vertcat(*ubz)
 lbz = vertcat (*lbz)
 
 
 V = SX.sym('V',nv, N)               # Decision variables (controls)
 
-D = SX.sym("D", nd, 1)   # Disturbance trajectory
+D = SX.sym("D", nd, N)   # Disturbance trajectory
 
 Z = vertcat(
     reshape(V, -1, 1),
@@ -411,7 +425,7 @@ def run_open_loop_mpc(w0, v0 , solver ):
     w_pred = []
     d0 = np.zeros(nd)
     v_st_0 = np.tile(v0, (N, 1))
-    d_st_0 = np.tile(d0, (1, 1))
+    d_st_0 = np.tile(d0, (N, 1))
     tr =np.array([0.0])
     args_p = np.concatenate([w0, tr])  # Ensure w0 and Tr are concatenated properly
     
@@ -461,11 +475,12 @@ def run_closed_loop_mpc(w0, Ts, sim_time, solver):
     mpc_i = 0
 
     v_st_0 = np.tile(v0, (N, 1))
-    d_st_0 = np.tile(d0, (1, 1)).T
+    d_st_0 = np.tile(d0, (N, 1)).T
     tr = np.array([0.0])
     args_p = np.concatenate([w0, tr])  # Ensure w0 and Tr are concatenated properly
     args_p = vertcat(*args_p)
     time_full = []
+    d_cons  = np.zeros(nd)
 
     while  mpc_i < int(sim_time / Ts):
         args_p[:nw] = w0
@@ -483,11 +498,12 @@ def run_closed_loop_mpc(w0, Ts, sim_time, solver):
         dsol = zsol[N*nv:]
         # construct xsol 
         wsol = Sx@ w0 + Su @vsol + Sd@dsol
-        #w0 =wsol[nw:2*nw]
-        w0  = A_d @ w0  + B_d @ V_act[0,:] + Bd_dist@ dsol  # + B_const_dist @ d_const  
+        d0 =dsol[:nd]
+        w0  = A_d @ w0  + B_d @ V_act[0,:] + Bd_dist@ d0   +  B_const_dist @ d_cons
         w_cl.append(w0)
         w_pred = np.array(wsol).reshape((N+1, nw))
         t0 = t0 + Ts
+        d_cons = get_disturbance(t0)
         t.append(t0)
         w_ol.append(w_pred)
         v_st_0 = np.vstack([vsol[nv:],  vsol[(N-1)*nv:]])
@@ -498,7 +514,7 @@ def run_closed_loop_mpc(w0, Ts, sim_time, solver):
     w_cl = np.array(vertcat(*w_cl)).reshape((mpc_i +1, nw))
     return w_ol, w_cl, time_full,  t
 
-sim_time = 60
+sim_time = 40
 
 
 w_ol, w_cl, time_full,  t = run_closed_loop_mpc(w0, Ts, sim_time, pisolver)
