@@ -121,7 +121,7 @@ def reference_trajectory(t, omega=np.pi, a=0.1):
 
     return xref
 
-def shift(T, t0, x0, u, d, d_const , f):
+def shift(T, t0, x0, u, d_est, d_cons , f):
     """
     Shift the state and time forward by one timestep.
 
@@ -140,7 +140,7 @@ def shift(T, t0, x0, u, d, d_const , f):
     con = u[0, :]
     #f_value = f(st, con)
     #st = st + T * f_value
-    st = f(st, con , d, d_const)
+    st = f(st, con , d_est, d_cons)
     
     x0 = np.array(st.full()).flatten()
 
@@ -224,13 +224,14 @@ w = SX.sym("w", nw)
 
 v = SX.sym("v", nv)
 
-d = SX.sym("d", nd)
-d_const = SX.sym('d_const', nd)  # time-dependent disturbance
+d_est = SX.sym("d_est", nd)
 
-w_next = A_d @ w + B_d @ v + Bd_dist@d + B_const_dist @ d_const  #need to confirm logic 
+d_cons = SX.sym('d_cons', nd)  # time-dependent disturbance
+
+w_next = A_d @ w + B_d @ v + Bd_dist@d_est + B_const_dist @ d_cons  #need to confirm logic 
 
 # Create the CasADi function
-system = Function("sys", [w, v , d,  d_const ], [w_next])
+system = Function("sys", [w, v , d_est,  d_cons ], [w_next])
 
 # Define initial state
 
@@ -243,9 +244,7 @@ V = SX.sym('V',nv,N)               # Decision variables (controls)
 
 #Parameters:initial state(x0)
 
-P = SX.sym('P',nw + 1, 1) 
-
-P_d = SX.sym('P_d',nd, 1) 
+P = SX.sym('P',nw + nd + 1, 1) 
 
 W= SX.sym('W',nw,(N+1)) # Decision variables (states)
 
@@ -313,14 +312,14 @@ lam_d = 1e-2          # smoothness weight: larger -> D varies less across horizo
 def objective_cost():
     J = 0.0
     for i in range(N):
-        dw = W[:, i+1]-reference_trajectory(P[nw:] + i*Ts)
+        dw = W[:, i+1]-reference_trajectory(P[nw + nd:] + i*Ts)
         dv = V[:, i]      #-vmax
         dd = D[:, i+1] - D[:, i]
 
         J += stage_cost_fcn(dw, dv)
         J += 0.5 * lam_d * mtimes(dd.T, dd)  # scalar
 
-    J += terminal_cost_fcn((W[:, -1]-reference_trajectory(P[nw:] + N*Ts)))      #+  bilin(Qd ,D[:, -1]) 
+    J += terminal_cost_fcn((W[:, -1]-reference_trajectory(P[nw + nd:] + N*Ts)))      #+  bilin(Qd ,D[:, -1]) 
     return J
 
 def equality_constraints():
@@ -332,13 +331,10 @@ def equality_constraints():
         cons = V[:, i] 
         d_i = D[:, i]
         #st_next_euler = system(st,cons)
-        st_next_model =  A_d @ st + B_d @ cons + Bd_dist @ d_i   # (need to clean this)
+        st_next_model =  A_d @ st + B_d @ cons + Bd_dist @ d_i + B_const_dist@P[nw:nw+nd]   # (need to clean this)
         st_next = W[:, i+1]
         g.append(st_next -  st_next_model)
-        
-         # enforce disturbance dynamics with known eta parameter
-        #g.append(D[:, i+1] - d_i - P_eta[:, i])
-       
+
     #terminal set constraints 
     #g.append(W[:, -1]-reference_trajectory(P[nw:] + N*Ts))
     return g
@@ -379,7 +375,7 @@ def Pi_opt_formulation():
     vnlp_prob = {
         "f": J,
         "x": Opt_Vars,
-        "p": vertcat(P, P_d),
+        "p": vertcat(P),
         "g": G_vcsd,
     }
     pisolver = nlpsol("vsolver", "ipopt", vnlp_prob)
@@ -398,7 +394,7 @@ def run_open_loop_mpc(w0, t0 , v0 , solver ):
     w_st_0 = np.tile(w0, (N + 1, 1)).T
     d_st_0 = np.tile(d0, (N + 1, 1)).T
     
-    args_p = np.concatenate([w0, t0 , d0])  # Ensure x0 and Tr are concatenated properly
+    args_p = np.concatenate([w0, d_const, t0 ])  # Ensure x0 and Tr are concatenated properly
 
     args_p= vertcat(*args_p)
 
@@ -419,13 +415,8 @@ def run_open_loop_mpc(w0, t0 , v0 , solver ):
 
 v0 =  np.array([1.0, 0.05 , 0.05, 0.05])
 
-# Example usage:
-#random_states = generate_random_states(num_samples=5)
-#x0 = random_states[0]
-
 w0 = np.zeros(14)  
-#x0[:1]= 1
-#x0[:3] += np.random.uniform(low=-2.0, high= 2.0, size=3)
+
 Tr =np.array([0.0])
 w_pred, v_ol, vsol = run_open_loop_mpc(w0, Tr, v0 , pisolver)
 
@@ -450,8 +441,9 @@ def run_closed_loop_mpc(w0, Tr, Ts, sim_time, solver):
     v_st_0 = np.tile(v0, (N, 1))
     w_st_0 = np.tile(w0, (N + 1, 1)).T
     d_st_0 = np.tile(d0, (N + 1, 1)).T
+    d_known = d_const
 
-    args_p = np.concatenate([w0, Tr , d0])  # Ensure x0 and Tr are concatenated properly
+    args_p = np.concatenate([w0, d_known , Tr])  # Ensure x0 and Tr are concatenated properly
     #args_p = np.array([x0])
     args_p = vertcat(*args_p)
     cost = []
@@ -463,8 +455,8 @@ def run_closed_loop_mpc(w0, Tr, Ts, sim_time, solver):
 
     while  mpc_i < int(sim_time / Ts):
         args_p[:nw] = w0
-        args_p[nw:nw+1] = np.array([t0])
-        args_p[nw + 1: ] = d0
+        args_p[nw + nd:] = np.array([t0])
+        args_p[nw:nw + nd] = d_known
         args_w0 = np.concatenate([w_st_0.T.reshape(-1), v_st_0.T.reshape(-1), d_st_0.T.reshape(-1)])
         start_time = time.time()
         sol = solver(x0=args_w0, p=args_p, lbg=lbg_vcsd, ubg=ubg_vcsd)
@@ -472,7 +464,7 @@ def run_closed_loop_mpc(w0, Tr, Ts, sim_time, solver):
         time_full.append(solver_time)
         w_opt = sol['x']
         Dsol =  w_opt[nw * (N+1) + nv*N:]
-        d0  = Dsol[:nd]
+        d_est = Dsol[:nd]
         wsol = np.array(w_opt[:nw*(N+1)]).reshape(N+1, nw)
         vsol = np.array(w_opt[nw*(N+1): nw*(N+1)+nv*N]).reshape(N, nv)
         dsol = np.array(w_opt[nw*(N+1)+nv*N:]).reshape(N+1, nd)
@@ -483,12 +475,11 @@ def run_closed_loop_mpc(w0, Tr, Ts, sim_time, solver):
         w_cl.append(wsol)
         v_cl.append(vsol[0, :])
         
-        d_continous = np.zeros(nd)
-        #d_continous =  get_disturbance(t0)
-        d_actual.append(d_continous[0])
-        d_predicted.append(d0[1])
+        #d_known =  get_disturbance(t0)
+        d_actual.append(d_known[0])
+        d_predicted.append(d_est[1])
 
-        t0, w0, v0 =shift(Ts, t0, w0, vsol, d0, d_continous,  system)
+        t0, w0, v0 =shift(Ts, t0, w0, vsol, d_est, d_known,  system)
 
         t.append(t0)
     
@@ -503,6 +494,7 @@ def run_closed_loop_mpc(w0, Tr, Ts, sim_time, solver):
     v_cl = np.array(v_cl)
     d_actual = np.array(d_actual)
     d_predicted = np.array(d_predicted)
+
     return w_ol, v_cl, t, cost , time_full, V_open_loop, d_actual,d_predicted
 
 # Run the closed-loop MPC for 10s
