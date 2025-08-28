@@ -208,6 +208,14 @@ def stack_reference(ref_fun, t0, Ts, N):
     return vertcat(*Ws)
 
 
+def stack_disturbance(disturbance_fun, t0, Ts, N):
+    d_var = []
+    for k in range(N):
+        dis = disturbance_fun(t0 + k*Ts)
+        d_var.append(dis)
+    return vertcat(*d_var)
+
+
 # Continuous-time system matrices  W_dot = AW + BV
 # important note  x = w1 , y=w5 , z=w9, psi = w13
 A1 = np.array([
@@ -306,8 +314,6 @@ K = -np.array(K)
 #computing block diagonal matrices 
 Sx, Su, Sd = build_prediction_mats(A_d, B_d, Bd_dist, N)
 
-print(Sd.shape)
-
 #Hard coded matrices
 Qblk, Rblk = build_blk_cost(Q,S,R,N)
 
@@ -339,8 +345,17 @@ t0 = 0.0
 
 Wref = stack_reference(reference_trajectory, Tr, Ts, N)
 
-h1 = Su.T @ Qblk @ (Sx @ w - Wref)
-h2 = Sd.T @ Qblk @ (Sx @ w- Wref)
+d_var = stack_disturbance(get_disturbance, t0, Ts, N)
+
+#add constant known disturbance 
+d_known  = [0.12, -0.08, 0.05]*N 
+
+d_known = vertcat(*d_known)
+
+c = Sd @ d_var   # known offset in stacked W
+
+h1 = Su.T @ Qblk @ (Sx @ w + c - Wref)
+h2 = Sd.T @ Qblk @ (Sx @ w + c - Wref)
 h = vertcat(h1, h2)
 
 
