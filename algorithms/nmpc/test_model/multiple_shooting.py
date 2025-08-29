@@ -290,8 +290,6 @@ Q = np.diag([
 R = 0.01
 R = R*np.diag(np.ones(nv))
 
-#Qd = 1e-6 * np.eye(nd)
-#+ bilin(Qd ,d) +  , d
 
 # Define the stage cost and terminal cost 
 stage_cost =  0.5*(bilin(Q, w) +  bilin(R, v))
