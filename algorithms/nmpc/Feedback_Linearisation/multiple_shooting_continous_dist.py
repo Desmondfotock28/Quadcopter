@@ -244,7 +244,7 @@ V = SX.sym('V',nv,N)               # Decision variables (controls)
 
 #Parameters:initial state(x0)
 
-P = SX.sym('P',nw + nd + 1, 1) 
+P = SX.sym('P',nw + 1, 1) 
 
 W= SX.sym('W',nw,(N+1)) # Decision variables (states)
 
@@ -312,14 +312,14 @@ lam_d = 1e-2          # smoothness weight: larger -> D varies less across horizo
 def objective_cost():
     J = 0.0
     for i in range(N):
-        dw = W[:, i+1]-reference_trajectory(P[nw + nd:] + i*Ts)
+        dw = W[:, i+1]-reference_trajectory(P[nw:] + i*Ts)
         dv = V[:, i]      #-vmax
         dd = D[:, i+1] - D[:, i]
 
         J += stage_cost_fcn(dw, dv)
         J += 0.5 * lam_d * mtimes(dd.T, dd)  # scalar
 
-    J += terminal_cost_fcn((W[:, -1]-reference_trajectory(P[nw + nd:] + N*Ts)))      #+  bilin(Qd ,D[:, -1]) 
+    J += terminal_cost_fcn((W[:, -1]-reference_trajectory(P[nw:] + N*Ts)))      #+  bilin(Qd ,D[:, -1]) 
     return J
 
 def equality_constraints():
@@ -331,7 +331,7 @@ def equality_constraints():
         cons = V[:, i] 
         d_i = D[:, i]
         #st_next_euler = system(st,cons)
-        st_next_model =  A_d @ st + B_d @ cons + Bd_dist @ d_i + B_const_dist@P[nw:nw+nd]   # (need to clean this)
+        st_next_model =  A_d @ st + B_d @ cons + Bd_dist @ d_i   # (need to clean this)
         st_next = W[:, i+1]
         g.append(st_next -  st_next_model)
 
@@ -394,7 +394,7 @@ def run_open_loop_mpc(w0, t0 , v0 , solver ):
     w_st_0 = np.tile(w0, (N + 1, 1)).T
     d_st_0 = np.tile(d0, (N + 1, 1)).T
     
-    args_p = np.concatenate([w0, d_const, t0 ])  # Ensure x0 and Tr are concatenated properly
+    args_p = np.concatenate([w0, t0 ])  # Ensure x0 and Tr are concatenated properly
 
     args_p= vertcat(*args_p)
 
@@ -443,8 +443,8 @@ def run_closed_loop_mpc(w0, Tr, Ts, sim_time, solver):
     d_st_0 = np.tile(d0, (N + 1, 1)).T
     d_known = d_const
 
-    args_p = np.concatenate([w0, d_known , Tr])  # Ensure x0 and Tr are concatenated properly
-    #args_p = np.array([x0])
+    args_p = np.concatenate([w0, Tr])  # Ensure x0 and Tr are concatenated properly
+
     args_p = vertcat(*args_p)
     cost = []
     time_full = []
@@ -455,8 +455,7 @@ def run_closed_loop_mpc(w0, Tr, Ts, sim_time, solver):
 
     while  mpc_i < int(sim_time / Ts):
         args_p[:nw] = w0
-        args_p[nw + nd:] = np.array([t0])
-        args_p[nw:nw + nd] = d_known
+        args_p[nw:] = np.array([t0])
         args_w0 = np.concatenate([w_st_0.T.reshape(-1), v_st_0.T.reshape(-1), d_st_0.T.reshape(-1)])
         start_time = time.time()
         sol = solver(x0=args_w0, p=args_p, lbg=lbg_vcsd, ubg=ubg_vcsd)
@@ -477,7 +476,7 @@ def run_closed_loop_mpc(w0, Tr, Ts, sim_time, solver):
         
         #d_known =  get_disturbance(t0)
         d_actual.append(d_known[0])
-        d_predicted.append(d_est[1])
+        d_predicted.append(d_est[0])
 
         t0, w0, v0 =shift(Ts, t0, w0, vsol, d_est, d_known,  system)
 

@@ -208,14 +208,6 @@ def stack_reference(ref_fun, t0, Ts, N):
     return vertcat(*Ws)
 
 
-def stack_disturbance(disturbance_fun, t0, Ts, N):
-    d_var = []
-    for k in range(N):
-        dis = disturbance_fun(t0 + k*Ts)
-        d_var.append(dis)
-    return vertcat(*d_var)
-
-
 # Continuous-time system matrices  W_dot = AW + BV
 # important note  x = w1 , y=w5 , z=w9, psi = w13
 A1 = np.array([
@@ -281,6 +273,7 @@ for j, idx in enumerate(dist_indices):
 Bd_dist = dt*Bd_dist
 
 B_const_dist = Bd_dist  # for now 
+
 d_const = np.array([0.12, -0.08, 0.05])   # (nd,)
  
 nd = Bd_dist.shape[1]
@@ -345,17 +338,9 @@ t0 = 0.0
 
 Wref = stack_reference(reference_trajectory, Tr, Ts, N)
 
-d_var = stack_disturbance(get_disturbance, t0, Ts, N)
 
-#add constant known disturbance 
-d_known  = [0.12, -0.08, 0.05]*N 
-
-d_known = vertcat(*d_known)
-
-c = Sd @ d_var   # known offset in stacked W
-
-h1 = Su.T @ Qblk @ (Sx @ w + c - Wref)
-h2 = Sd.T @ Qblk @ (Sx @ w + c - Wref)
+h1 = Su.T @ Qblk @ (Sx @ w - Wref)
+h2 = Sd.T @ Qblk @ (Sx @ w - Wref)
 h = vertcat(h1, h2)
 
 
