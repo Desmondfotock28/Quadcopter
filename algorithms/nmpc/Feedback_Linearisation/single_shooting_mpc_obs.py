@@ -162,6 +162,7 @@ def reference_trajectory(t, omega=np.pi, a=0.1):
     
 
     xref = vertcat(xr, np.zeros(3), yr, np.zeros(3), zr, np.zeros(5))
+   
 
     return xref
 
@@ -256,14 +257,14 @@ Ts = 0.1   #sampling time in [s]
 
 N =  10    #prediction horizon
 
-tf = 1
+tf = 1.0
 
 # State and input dimensions 
 nw = A.shape[1]
 nv = B.shape[1]
 
-# Disturbance injection matrix: injects bias into rows 2, 6, 10
-dist_indices = [1, 5, 10]
+# Disturbance injection matrix: injects bias into rows 2, 6, 9
+dist_indices = [1, 5, 9]
 nd = len(dist_indices)
 
 Bd_dist = np.zeros((nw, nd))

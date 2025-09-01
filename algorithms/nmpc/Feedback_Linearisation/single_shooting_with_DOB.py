@@ -287,8 +287,8 @@ tf = 1
 nw = A.shape[1]
 nv = B.shape[1]
 
-# Disturbance injection matrix: injects bias into rows 2, 6, 10
-dist_indices = [1, 5, 10]
+# Disturbance injection matrix: injects bias into rows 2, 6, 9
+dist_indices = [1, 5, 9]
 nd = len(dist_indices)
 
 Bd_cons = np.zeros((nw, nd))
@@ -581,7 +581,7 @@ def run_closed_loop_mpc(w0, Ts, sim_time, solver):
 
     return w_ol, w_cl, time_full,  t , d_actual, d_predicted
 
-sim_time = 60
+sim_time = 40
 
 
 w_ol, w_cl, time_full,  t , d_actual, d_predicted = run_closed_loop_mpc(w0, Ts, sim_time, pisolver)
