@@ -309,7 +309,7 @@ K = -np.array(K)
 Sx, Su, Sd = build_prediction_mats(A_d, B_d, Bd_dist, N)
 
 #Hard coded matrices
-Qblk, Rblk = build_blk_cost(Q,S,R,N)
+Qblk, Rblk = build_blk_cost(Q,Q,R,N)
 
 # H and h
 H11 = Su.T @ Qblk @ Su + Rblk

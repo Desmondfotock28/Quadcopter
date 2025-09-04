@@ -311,13 +311,13 @@ nd = Bd_dist.shape[1]
 
 Q = np.diag([
         10,  # w1 (x-position)
-        2,  # w2 
-        2,  # w3 
-        2,   # w4 
+        10,  # w2 
+        10,  # w3 
+        10,   # w4 
         10,   # w5 (y-position)
-        2,   # w6 
-        2,   # w7 
-        2,   # w8 
+        10,   # w6 
+        10,   # w7 
+        10,   # w8 
         10,   # w9 (altitude)
         10,   # w10 
         10,   # w11 
@@ -333,7 +333,7 @@ R = R*np.diag(np.ones(nv))
 Sx, Su, Sd = build_prediction_mats(A_d, B_d, Bd_dist, N)
 
 #Hard coded matrices
-Qblk, Rblk = build_blk_cost(Q,10*Q,R,N)
+Qblk, Rblk = build_blk_cost(Q, Q,R,N)
 
 # H and h
 H = Su.T @ Qblk @ Su + Rblk
@@ -539,7 +539,7 @@ def run_closed_loop_mpc(w0, Ts, sim_time, solver):
         wsol = Sx@ w0 + Su @vsol  +  Sd@d_hat
 
         
-        d0 = get_disturbance(t0)
+        d0 = np.array([0.0,0.0,0.0])     #get_disturbance(t0)
         d_actual.append(d0[0])
 
         #implement disturbance observer 
