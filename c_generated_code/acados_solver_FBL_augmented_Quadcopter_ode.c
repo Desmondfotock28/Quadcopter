@@ -39,87 +39,87 @@
 
 // example specific
 
-#include "FBL_Quadcopter_ode_model/FBL_Quadcopter_ode_model.h"
+#include "FBL_augmented_Quadcopter_ode_model/FBL_augmented_Quadcopter_ode_model.h"
 
 
 
 
 
-#include "acados_solver_FBL_Quadcopter_ode.h"
+#include "acados_solver_FBL_augmented_Quadcopter_ode.h"
 
-#define NX     FBL_QUADCOPTER_ODE_NX
-#define NZ     FBL_QUADCOPTER_ODE_NZ
-#define NU     FBL_QUADCOPTER_ODE_NU
-#define NP     FBL_QUADCOPTER_ODE_NP
-#define NP_GLOBAL     FBL_QUADCOPTER_ODE_NP_GLOBAL
-#define NY0    FBL_QUADCOPTER_ODE_NY0
-#define NY     FBL_QUADCOPTER_ODE_NY
-#define NYN    FBL_QUADCOPTER_ODE_NYN
+#define NX     FBL_AUGMENTED_QUADCOPTER_ODE_NX
+#define NZ     FBL_AUGMENTED_QUADCOPTER_ODE_NZ
+#define NU     FBL_AUGMENTED_QUADCOPTER_ODE_NU
+#define NP     FBL_AUGMENTED_QUADCOPTER_ODE_NP
+#define NP_GLOBAL     FBL_AUGMENTED_QUADCOPTER_ODE_NP_GLOBAL
+#define NY0    FBL_AUGMENTED_QUADCOPTER_ODE_NY0
+#define NY     FBL_AUGMENTED_QUADCOPTER_ODE_NY
+#define NYN    FBL_AUGMENTED_QUADCOPTER_ODE_NYN
 
-#define NBX    FBL_QUADCOPTER_ODE_NBX
-#define NBX0   FBL_QUADCOPTER_ODE_NBX0
-#define NBU    FBL_QUADCOPTER_ODE_NBU
-#define NG     FBL_QUADCOPTER_ODE_NG
-#define NBXN   FBL_QUADCOPTER_ODE_NBXN
-#define NGN    FBL_QUADCOPTER_ODE_NGN
+#define NBX    FBL_AUGMENTED_QUADCOPTER_ODE_NBX
+#define NBX0   FBL_AUGMENTED_QUADCOPTER_ODE_NBX0
+#define NBU    FBL_AUGMENTED_QUADCOPTER_ODE_NBU
+#define NG     FBL_AUGMENTED_QUADCOPTER_ODE_NG
+#define NBXN   FBL_AUGMENTED_QUADCOPTER_ODE_NBXN
+#define NGN    FBL_AUGMENTED_QUADCOPTER_ODE_NGN
 
-#define NH     FBL_QUADCOPTER_ODE_NH
-#define NHN    FBL_QUADCOPTER_ODE_NHN
-#define NH0    FBL_QUADCOPTER_ODE_NH0
-#define NPHI   FBL_QUADCOPTER_ODE_NPHI
-#define NPHIN  FBL_QUADCOPTER_ODE_NPHIN
-#define NPHI0  FBL_QUADCOPTER_ODE_NPHI0
-#define NR     FBL_QUADCOPTER_ODE_NR
+#define NH     FBL_AUGMENTED_QUADCOPTER_ODE_NH
+#define NHN    FBL_AUGMENTED_QUADCOPTER_ODE_NHN
+#define NH0    FBL_AUGMENTED_QUADCOPTER_ODE_NH0
+#define NPHI   FBL_AUGMENTED_QUADCOPTER_ODE_NPHI
+#define NPHIN  FBL_AUGMENTED_QUADCOPTER_ODE_NPHIN
+#define NPHI0  FBL_AUGMENTED_QUADCOPTER_ODE_NPHI0
+#define NR     FBL_AUGMENTED_QUADCOPTER_ODE_NR
 
-#define NS     FBL_QUADCOPTER_ODE_NS
-#define NS0    FBL_QUADCOPTER_ODE_NS0
-#define NSN    FBL_QUADCOPTER_ODE_NSN
+#define NS     FBL_AUGMENTED_QUADCOPTER_ODE_NS
+#define NS0    FBL_AUGMENTED_QUADCOPTER_ODE_NS0
+#define NSN    FBL_AUGMENTED_QUADCOPTER_ODE_NSN
 
-#define NSBX   FBL_QUADCOPTER_ODE_NSBX
-#define NSBU   FBL_QUADCOPTER_ODE_NSBU
-#define NSH0   FBL_QUADCOPTER_ODE_NSH0
-#define NSH    FBL_QUADCOPTER_ODE_NSH
-#define NSHN   FBL_QUADCOPTER_ODE_NSHN
-#define NSG    FBL_QUADCOPTER_ODE_NSG
-#define NSPHI0 FBL_QUADCOPTER_ODE_NSPHI0
-#define NSPHI  FBL_QUADCOPTER_ODE_NSPHI
-#define NSPHIN FBL_QUADCOPTER_ODE_NSPHIN
-#define NSGN   FBL_QUADCOPTER_ODE_NSGN
-#define NSBXN  FBL_QUADCOPTER_ODE_NSBXN
+#define NSBX   FBL_AUGMENTED_QUADCOPTER_ODE_NSBX
+#define NSBU   FBL_AUGMENTED_QUADCOPTER_ODE_NSBU
+#define NSH0   FBL_AUGMENTED_QUADCOPTER_ODE_NSH0
+#define NSH    FBL_AUGMENTED_QUADCOPTER_ODE_NSH
+#define NSHN   FBL_AUGMENTED_QUADCOPTER_ODE_NSHN
+#define NSG    FBL_AUGMENTED_QUADCOPTER_ODE_NSG
+#define NSPHI0 FBL_AUGMENTED_QUADCOPTER_ODE_NSPHI0
+#define NSPHI  FBL_AUGMENTED_QUADCOPTER_ODE_NSPHI
+#define NSPHIN FBL_AUGMENTED_QUADCOPTER_ODE_NSPHIN
+#define NSGN   FBL_AUGMENTED_QUADCOPTER_ODE_NSGN
+#define NSBXN  FBL_AUGMENTED_QUADCOPTER_ODE_NSBXN
 
 
 
 // ** solver data **
 
-FBL_Quadcopter_ode_solver_capsule * FBL_Quadcopter_ode_acados_create_capsule(void)
+FBL_augmented_Quadcopter_ode_solver_capsule * FBL_augmented_Quadcopter_ode_acados_create_capsule(void)
 {
-    void* capsule_mem = malloc(sizeof(FBL_Quadcopter_ode_solver_capsule));
-    FBL_Quadcopter_ode_solver_capsule *capsule = (FBL_Quadcopter_ode_solver_capsule *) capsule_mem;
+    void* capsule_mem = malloc(sizeof(FBL_augmented_Quadcopter_ode_solver_capsule));
+    FBL_augmented_Quadcopter_ode_solver_capsule *capsule = (FBL_augmented_Quadcopter_ode_solver_capsule *) capsule_mem;
 
     return capsule;
 }
 
 
-int FBL_Quadcopter_ode_acados_free_capsule(FBL_Quadcopter_ode_solver_capsule *capsule)
+int FBL_augmented_Quadcopter_ode_acados_free_capsule(FBL_augmented_Quadcopter_ode_solver_capsule *capsule)
 {
     free(capsule);
     return 0;
 }
 
 
-int FBL_Quadcopter_ode_acados_create(FBL_Quadcopter_ode_solver_capsule* capsule)
+int FBL_augmented_Quadcopter_ode_acados_create(FBL_augmented_Quadcopter_ode_solver_capsule* capsule)
 {
-    int N_shooting_intervals = FBL_QUADCOPTER_ODE_N;
+    int N_shooting_intervals = FBL_AUGMENTED_QUADCOPTER_ODE_N;
     double* new_time_steps = NULL; // NULL -> don't alter the code generated time-steps
-    return FBL_Quadcopter_ode_acados_create_with_discretization(capsule, N_shooting_intervals, new_time_steps);
+    return FBL_augmented_Quadcopter_ode_acados_create_with_discretization(capsule, N_shooting_intervals, new_time_steps);
 }
 
 
-int FBL_Quadcopter_ode_acados_update_time_steps(FBL_Quadcopter_ode_solver_capsule* capsule, int N, double* new_time_steps)
+int FBL_augmented_Quadcopter_ode_acados_update_time_steps(FBL_augmented_Quadcopter_ode_solver_capsule* capsule, int N, double* new_time_steps)
 {
 
     if (N != capsule->nlp_solver_plan->N) {
-        fprintf(stderr, "FBL_Quadcopter_ode_acados_update_time_steps: given number of time steps (= %d) " \
+        fprintf(stderr, "FBL_augmented_Quadcopter_ode_acados_update_time_steps: given number of time steps (= %d) " \
             "differs from the currently allocated number of " \
             "time steps (= %d)!\n" \
             "Please recreate with new discretization and provide a new vector of time_stamps!\n",
@@ -141,9 +141,9 @@ int FBL_Quadcopter_ode_acados_update_time_steps(FBL_Quadcopter_ode_solver_capsul
 }
 
 /**
- * Internal function for FBL_Quadcopter_ode_acados_create: step 1
+ * Internal function for FBL_augmented_Quadcopter_ode_acados_create: step 1
  */
-void FBL_Quadcopter_ode_acados_create_set_plan(ocp_nlp_plan_t* nlp_solver_plan, const int N)
+void FBL_augmented_Quadcopter_ode_acados_create_set_plan(ocp_nlp_plan_t* nlp_solver_plan, const int N)
 {
     assert(N == nlp_solver_plan->N);
 
@@ -181,7 +181,7 @@ void FBL_Quadcopter_ode_acados_create_set_plan(ocp_nlp_plan_t* nlp_solver_plan, 
 }
 
 
-static ocp_nlp_dims* FBL_Quadcopter_ode_acados_create_setup_dimensions(FBL_Quadcopter_ode_solver_capsule* capsule)
+static ocp_nlp_dims* FBL_augmented_Quadcopter_ode_acados_create_setup_dimensions(FBL_augmented_Quadcopter_ode_solver_capsule* capsule)
 {
     ocp_nlp_plan_t* nlp_solver_plan = capsule->nlp_solver_plan;
     const int N = nlp_solver_plan->N;
@@ -242,7 +242,7 @@ static ocp_nlp_dims* FBL_Quadcopter_ode_acados_create_setup_dimensions(FBL_Quadc
     nsbx[0] = 0;
     ns[0] = NS0;
     
-    nbxe[0] = 14;
+    nbxe[0] = 17;
     
     ny[0] = NY0;
     nh[0] = NH0;
@@ -314,9 +314,9 @@ static ocp_nlp_dims* FBL_Quadcopter_ode_acados_create_setup_dimensions(FBL_Quadc
 
 
 /**
- * Internal function for FBL_Quadcopter_ode_acados_create: step 3
+ * Internal function for FBL_augmented_Quadcopter_ode_acados_create: step 3
  */
-void FBL_Quadcopter_ode_acados_create_setup_functions(FBL_Quadcopter_ode_solver_capsule* capsule)
+void FBL_augmented_Quadcopter_ode_acados_create_setup_functions(FBL_augmented_Quadcopter_ode_solver_capsule* capsule)
 {
     const int N = capsule->nlp_solver_plan->N;
 
@@ -346,17 +346,17 @@ void FBL_Quadcopter_ode_acados_create_setup_functions(FBL_Quadcopter_ode_solver_
     // explicit ode
     capsule->expl_vde_forw = (external_function_external_param_casadi *) malloc(sizeof(external_function_external_param_casadi)*N);
     for (int i = 0; i < N; i++) {
-        MAP_CASADI_FNC(expl_vde_forw[i], FBL_Quadcopter_ode_expl_vde_forw);
+        MAP_CASADI_FNC(expl_vde_forw[i], FBL_augmented_Quadcopter_ode_expl_vde_forw);
     }
 
     capsule->expl_ode_fun = (external_function_external_param_casadi *) malloc(sizeof(external_function_external_param_casadi)*N);
     for (int i = 0; i < N; i++) {
-        MAP_CASADI_FNC(expl_ode_fun[i], FBL_Quadcopter_ode_expl_ode_fun);
+        MAP_CASADI_FNC(expl_ode_fun[i], FBL_augmented_Quadcopter_ode_expl_ode_fun);
     }
 
     capsule->expl_vde_adj = (external_function_external_param_casadi *) malloc(sizeof(external_function_external_param_casadi)*N);
     for (int i = 0; i < N; i++) {
-        MAP_CASADI_FNC(expl_vde_adj[i], FBL_Quadcopter_ode_expl_vde_adj);
+        MAP_CASADI_FNC(expl_vde_adj[i], FBL_augmented_Quadcopter_ode_expl_vde_adj);
     }
 
 
@@ -366,9 +366,9 @@ void FBL_Quadcopter_ode_acados_create_setup_functions(FBL_Quadcopter_ode_solver_
 
 
 /**
- * Internal function for FBL_Quadcopter_ode_acados_create: step 5
+ * Internal function for FBL_augmented_Quadcopter_ode_acados_create: step 5
  */
-void FBL_Quadcopter_ode_acados_create_set_default_parameters(FBL_Quadcopter_ode_solver_capsule* capsule)
+void FBL_augmented_Quadcopter_ode_acados_create_set_default_parameters(FBL_augmented_Quadcopter_ode_solver_capsule* capsule)
 {
 
     // no parameters defined
@@ -379,9 +379,9 @@ void FBL_Quadcopter_ode_acados_create_set_default_parameters(FBL_Quadcopter_ode_
 
 
 /**
- * Internal function for FBL_Quadcopter_ode_acados_create: step 5
+ * Internal function for FBL_augmented_Quadcopter_ode_acados_create: step 5
  */
-void FBL_Quadcopter_ode_acados_setup_nlp_in(FBL_Quadcopter_ode_solver_capsule* capsule, const int N, double* new_time_steps)
+void FBL_augmented_Quadcopter_ode_acados_setup_nlp_in(FBL_augmented_Quadcopter_ode_solver_capsule* capsule, const int N, double* new_time_steps)
 {
     assert(N == capsule->nlp_solver_plan->N);
     ocp_nlp_config* nlp_config = capsule->nlp_config;
@@ -403,7 +403,7 @@ void FBL_Quadcopter_ode_acados_setup_nlp_in(FBL_Quadcopter_ode_solver_capsule* c
     if (new_time_steps)
     {
         // NOTE: this sets scaling and time_steps
-        FBL_Quadcopter_ode_acados_update_time_steps(capsule, N, new_time_steps);
+        FBL_augmented_Quadcopter_ode_acados_update_time_steps(capsule, N, new_time_steps);
     }
     else
     {
@@ -466,10 +466,13 @@ void FBL_Quadcopter_ode_acados_setup_nlp_in(FBL_Quadcopter_ode_solver_capsule* c
     W_0[11+(NY0) * 11] = 10;
     W_0[12+(NY0) * 12] = 10;
     W_0[13+(NY0) * 13] = 10;
-    W_0[14+(NY0) * 14] = 0.01;
-    W_0[15+(NY0) * 15] = 0.01;
-    W_0[16+(NY0) * 16] = 0.01;
+    W_0[14+(NY0) * 14] = 0.001;
+    W_0[15+(NY0) * 15] = 0.001;
+    W_0[16+(NY0) * 16] = 0.001;
     W_0[17+(NY0) * 17] = 0.01;
+    W_0[18+(NY0) * 18] = 0.01;
+    W_0[19+(NY0) * 19] = 0.01;
+    W_0[20+(NY0) * 20] = 0.01;
     ocp_nlp_cost_model_set(nlp_config, nlp_dims, nlp_in, 0, "W", W_0);
     free(W_0);
     double* Vx_0 = calloc(NY0*NX, sizeof(double));
@@ -488,14 +491,17 @@ void FBL_Quadcopter_ode_acados_setup_nlp_in(FBL_Quadcopter_ode_solver_capsule* c
     Vx_0[11+(NY0) * 11] = 1;
     Vx_0[12+(NY0) * 12] = 1;
     Vx_0[13+(NY0) * 13] = 1;
+    Vx_0[14+(NY0) * 14] = 1;
+    Vx_0[15+(NY0) * 15] = 1;
+    Vx_0[16+(NY0) * 16] = 1;
     ocp_nlp_cost_model_set(nlp_config, nlp_dims, nlp_in, 0, "Vx", Vx_0);
     free(Vx_0);
     double* Vu_0 = calloc(NY0*NU, sizeof(double));
     // change only the non-zero elements:
-    Vu_0[14+(NY0) * 0] = 1;
-    Vu_0[15+(NY0) * 1] = 1;
-    Vu_0[16+(NY0) * 2] = 1;
-    Vu_0[17+(NY0) * 3] = 1;
+    Vu_0[17+(NY0) * 0] = 1;
+    Vu_0[18+(NY0) * 1] = 1;
+    Vu_0[19+(NY0) * 2] = 1;
+    Vu_0[20+(NY0) * 3] = 1;
     ocp_nlp_cost_model_set(nlp_config, nlp_dims, nlp_in, 0, "Vu", Vu_0);
     free(Vu_0);
     double* yref = calloc(NY, sizeof(double));
@@ -522,10 +528,13 @@ void FBL_Quadcopter_ode_acados_setup_nlp_in(FBL_Quadcopter_ode_solver_capsule* c
     W[11+(NY) * 11] = 10;
     W[12+(NY) * 12] = 10;
     W[13+(NY) * 13] = 10;
-    W[14+(NY) * 14] = 0.01;
-    W[15+(NY) * 15] = 0.01;
-    W[16+(NY) * 16] = 0.01;
+    W[14+(NY) * 14] = 0.001;
+    W[15+(NY) * 15] = 0.001;
+    W[16+(NY) * 16] = 0.001;
     W[17+(NY) * 17] = 0.01;
+    W[18+(NY) * 18] = 0.01;
+    W[19+(NY) * 19] = 0.01;
+    W[20+(NY) * 20] = 0.01;
 
     for (int i = 1; i < N; i++)
     {
@@ -548,6 +557,9 @@ void FBL_Quadcopter_ode_acados_setup_nlp_in(FBL_Quadcopter_ode_solver_capsule* c
     Vx[11+(NY) * 11] = 1;
     Vx[12+(NY) * 12] = 1;
     Vx[13+(NY) * 13] = 1;
+    Vx[14+(NY) * 14] = 1;
+    Vx[15+(NY) * 15] = 1;
+    Vx[16+(NY) * 16] = 1;
     for (int i = 1; i < N; i++)
     {
         ocp_nlp_cost_model_set(nlp_config, nlp_dims, nlp_in, i, "Vx", Vx);
@@ -557,10 +569,10 @@ void FBL_Quadcopter_ode_acados_setup_nlp_in(FBL_Quadcopter_ode_solver_capsule* c
     
     double* Vu = calloc(NY*NU, sizeof(double));
     // change only the non-zero elements:
-    Vu[14+(NY) * 0] = 1;
-    Vu[15+(NY) * 1] = 1;
-    Vu[16+(NY) * 2] = 1;
-    Vu[17+(NY) * 3] = 1;
+    Vu[17+(NY) * 0] = 1;
+    Vu[18+(NY) * 1] = 1;
+    Vu[19+(NY) * 2] = 1;
+    Vu[20+(NY) * 3] = 1;
 
     for (int i = 1; i < N; i++)
     {
@@ -574,20 +586,205 @@ void FBL_Quadcopter_ode_acados_setup_nlp_in(FBL_Quadcopter_ode_solver_capsule* c
 
     double* W_e = calloc(NYN*NYN, sizeof(double));
     // change only the non-zero elements:
-    W_e[0+(NYN) * 0] = 100;
-    W_e[1+(NYN) * 1] = 20;
-    W_e[2+(NYN) * 2] = 20;
-    W_e[3+(NYN) * 3] = 20;
-    W_e[4+(NYN) * 4] = 100;
-    W_e[5+(NYN) * 5] = 20;
-    W_e[6+(NYN) * 6] = 20;
-    W_e[7+(NYN) * 7] = 20;
-    W_e[8+(NYN) * 8] = 100;
-    W_e[9+(NYN) * 9] = 100;
-    W_e[10+(NYN) * 10] = 100;
-    W_e[11+(NYN) * 11] = 100;
-    W_e[12+(NYN) * 12] = 100;
-    W_e[13+(NYN) * 13] = 100;
+    W_e[0+(NYN) * 0] = 196.238242363592;
+    W_e[0+(NYN) * 1] = 172.73532671157798;
+    W_e[0+(NYN) * 2] = 71.8170864919517;
+    W_e[0+(NYN) * 3] = 7.0575216244102625;
+    W_e[0+(NYN) * 4] = -0.0000000000001254923328840408;
+    W_e[0+(NYN) * 5] = -0.0000000000002510885686008118;
+    W_e[0+(NYN) * 6] = -0.000000000000054537395927477993;
+    W_e[0+(NYN) * 7] = -0.000000000000024001540671046478;
+    W_e[0+(NYN) * 8] = 0.00000000000032047034340499984;
+    W_e[0+(NYN) * 9] = 0.0000000000009712887913980817;
+    W_e[0+(NYN) * 10] = 0.0000000000006706995314482752;
+    W_e[0+(NYN) * 11] = 0.00000000000005323296599333685;
+    W_e[0+(NYN) * 12] = 0.00000000000003065408431864458;
+    W_e[0+(NYN) * 13] = 0.000000000000035293907543213025;
+    W_e[1+(NYN) * 0] = 172.73532671157798;
+    W_e[1+(NYN) * 1] = 249.8821499166922;
+    W_e[1+(NYN) * 2] = 126.69335797493667;
+    W_e[1+(NYN) * 3] = 13.143804227731572;
+    W_e[1+(NYN) * 4] = -0.0000000000002714355518217631;
+    W_e[1+(NYN) * 5] = -0.0000000000003791150791892978;
+    W_e[1+(NYN) * 6] = -0.00000000000006656231172485247;
+    W_e[1+(NYN) * 7] = -0.00000000000002290121265341616;
+    W_e[1+(NYN) * 8] = 0.0000000000006591663812535937;
+    W_e[1+(NYN) * 9] = 0.0000000000018176865007853764;
+    W_e[1+(NYN) * 10] = 0.0000000000012442383091143782;
+    W_e[1+(NYN) * 11] = 0.00000000000009360288437072975;
+    W_e[1+(NYN) * 12] = 0.000000000000045244573883346103;
+    W_e[1+(NYN) * 13] = 0.00000000000004377860380740264;
+    W_e[2+(NYN) * 0] = 71.8170864919517;
+    W_e[2+(NYN) * 1] = 126.69335797493667;
+    W_e[2+(NYN) * 2] = 98.24033896137604;
+    W_e[2+(NYN) * 3] = 10.876452612891285;
+    W_e[2+(NYN) * 4] = -0.00000000000005219961775941544;
+    W_e[2+(NYN) * 5] = -0.000000000000044753777180336266;
+    W_e[2+(NYN) * 6] = 0.00000000000009989416734648131;
+    W_e[2+(NYN) * 7] = 0.000000000000007540771670883108;
+    W_e[2+(NYN) * 8] = 0.0000000000004450302324121358;
+    W_e[2+(NYN) * 9] = 0.0000000000011314797835642644;
+    W_e[2+(NYN) * 10] = 0.0000000000007363173443957935;
+    W_e[2+(NYN) * 11] = 0.00000000000005811833105591204;
+    W_e[2+(NYN) * 12] = 0.00000000000002068953182563419;
+    W_e[2+(NYN) * 13] = 0.000000000000025462859694899063;
+    W_e[3+(NYN) * 0] = 7.0575216244102625;
+    W_e[3+(NYN) * 1] = 13.143804227731572;
+    W_e[3+(NYN) * 2] = 10.876452612891285;
+    W_e[3+(NYN) * 3] = 3.980861147901267;
+    W_e[3+(NYN) * 4] = 0.000000000000013206413930937986;
+    W_e[3+(NYN) * 5] = 0.000000000000029223854272649755;
+    W_e[3+(NYN) * 6] = 0.000000000000029221030843096555;
+    W_e[3+(NYN) * 7] = 0.0000000000000024987784650324196;
+    W_e[3+(NYN) * 8] = 0.00000000000004928743233225247;
+    W_e[3+(NYN) * 9] = 0.00000000000012588051401266717;
+    W_e[3+(NYN) * 10] = 0.00000000000008525341344901718;
+    W_e[3+(NYN) * 11] = 0.000000000000011653125646329452;
+    W_e[3+(NYN) * 12] = 0.000000000000003442459013090337;
+    W_e[3+(NYN) * 13] = 0.000000000000001442461913022831;
+    W_e[4+(NYN) * 0] = -0.0000000000001254923328840408;
+    W_e[4+(NYN) * 1] = -0.0000000000002714355518217631;
+    W_e[4+(NYN) * 2] = -0.00000000000005219961775941544;
+    W_e[4+(NYN) * 3] = 0.000000000000013206413930937986;
+    W_e[4+(NYN) * 4] = 196.23824236359116;
+    W_e[4+(NYN) * 5] = 172.73532671157662;
+    W_e[4+(NYN) * 6] = 71.81708649195059;
+    W_e[4+(NYN) * 7] = 7.057521624410117;
+    W_e[4+(NYN) * 8] = 0.000000000001492289248076775;
+    W_e[4+(NYN) * 9] = 0.0000000000027605415963791295;
+    W_e[4+(NYN) * 10] = 0.0000000000015046663026019653;
+    W_e[4+(NYN) * 11] = 0.00000000000007885363501438339;
+    W_e[4+(NYN) * 12] = 0.00000000000006400917425190471;
+    W_e[4+(NYN) * 13] = 0.00000000000000896982569722482;
+    W_e[5+(NYN) * 0] = -0.0000000000002510885686008118;
+    W_e[5+(NYN) * 1] = -0.0000000000003791150791892978;
+    W_e[5+(NYN) * 2] = -0.000000000000044753777180336266;
+    W_e[5+(NYN) * 3] = 0.000000000000029223854272649755;
+    W_e[5+(NYN) * 4] = 172.73532671157662;
+    W_e[5+(NYN) * 5] = 249.8821499166903;
+    W_e[5+(NYN) * 6] = 126.69335797493528;
+    W_e[5+(NYN) * 7] = 13.143804227731378;
+    W_e[5+(NYN) * 8] = 0.0000000000015184071789592586;
+    W_e[5+(NYN) * 9] = 0.000000000003465781517027014;
+    W_e[5+(NYN) * 10] = 0.0000000000021794137071956425;
+    W_e[5+(NYN) * 11] = 0.00000000000011996311017797122;
+    W_e[5+(NYN) * 12] = 0.0000000000000807820720308765;
+    W_e[5+(NYN) * 13] = 0.000000000000024674886592622195;
+    W_e[6+(NYN) * 0] = -0.000000000000054537395927477993;
+    W_e[6+(NYN) * 1] = -0.00000000000006656231172485247;
+    W_e[6+(NYN) * 2] = 0.00000000000009989416734648131;
+    W_e[6+(NYN) * 3] = 0.000000000000029221030843096555;
+    W_e[6+(NYN) * 4] = 71.81708649195059;
+    W_e[6+(NYN) * 5] = 126.69335797493528;
+    W_e[6+(NYN) * 6] = 98.2403389613752;
+    W_e[6+(NYN) * 7] = 10.876452612891155;
+    W_e[6+(NYN) * 8] = 0.0000000000006634359245412467;
+    W_e[6+(NYN) * 9] = 0.000000000001778395819275857;
+    W_e[6+(NYN) * 10] = 0.0000000000012307570866976633;
+    W_e[6+(NYN) * 11] = 0.00000000000007548157430936968;
+    W_e[6+(NYN) * 12] = 0.000000000000036182784831924;
+    W_e[6+(NYN) * 13] = 0.00000000000002142597695958653;
+    W_e[7+(NYN) * 0] = -0.000000000000024001540671046478;
+    W_e[7+(NYN) * 1] = -0.00000000000002290121265341616;
+    W_e[7+(NYN) * 2] = 0.000000000000007540771670883108;
+    W_e[7+(NYN) * 3] = 0.0000000000000024987784650324196;
+    W_e[7+(NYN) * 4] = 7.057521624410117;
+    W_e[7+(NYN) * 5] = 13.143804227731378;
+    W_e[7+(NYN) * 6] = 10.876452612891155;
+    W_e[7+(NYN) * 7] = 3.980861147901259;
+    W_e[7+(NYN) * 8] = 0.000000000000055381049340254736;
+    W_e[7+(NYN) * 9] = 0.0000000000001520501599899603;
+    W_e[7+(NYN) * 10] = 0.00000000000010619923856140637;
+    W_e[7+(NYN) * 11] = 0.0000000000000005843263290557355;
+    W_e[7+(NYN) * 12] = 0.0000000000000016466391177790969;
+    W_e[7+(NYN) * 13] = 0.0000000000000033769258730712913;
+    W_e[8+(NYN) * 0] = 0.00000000000032047034340499984;
+    W_e[8+(NYN) * 1] = 0.0000000000006591663812535937;
+    W_e[8+(NYN) * 2] = 0.0000000000004450302324121358;
+    W_e[8+(NYN) * 3] = 0.00000000000004928743233225247;
+    W_e[8+(NYN) * 4] = 0.000000000001492289248076775;
+    W_e[8+(NYN) * 5] = 0.0000000000015184071789592586;
+    W_e[8+(NYN) * 6] = 0.0000000000006634359245412467;
+    W_e[8+(NYN) * 7] = 0.000000000000055381049340254736;
+    W_e[8+(NYN) * 8] = 267.57972329229233;
+    W_e[8+(NYN) * 9] = 294.61555542128116;
+    W_e[8+(NYN) * 10] = 141.8798690914925;
+    W_e[8+(NYN) * 11] = 12.31164989932678;
+    W_e[8+(NYN) * 12] = 0.000000000001545490174906843;
+    W_e[8+(NYN) * 13] = 0.0000000000001652943705607971;
+    W_e[9+(NYN) * 0] = 0.0000000000009712887913980817;
+    W_e[9+(NYN) * 1] = 0.0000000000018176865007853764;
+    W_e[9+(NYN) * 2] = 0.0000000000011314797835642644;
+    W_e[9+(NYN) * 3] = 0.00000000000012588051401266717;
+    W_e[9+(NYN) * 4] = 0.0000000000027605415963791295;
+    W_e[9+(NYN) * 5] = 0.000000000003465781517027014;
+    W_e[9+(NYN) * 6] = 0.000000000001778395819275857;
+    W_e[9+(NYN) * 7] = 0.0000000000001520501599899603;
+    W_e[9+(NYN) * 8] = 294.61555542128116;
+    W_e[9+(NYN) * 9] = 616.9900633386862;
+    W_e[9+(NYN) * 10] = 353.14212431400284;
+    W_e[9+(NYN) * 11] = 31.712313743401435;
+    W_e[9+(NYN) * 12] = 0.0000000000024991026629247048;
+    W_e[9+(NYN) * 13] = 0.00000000000028701762434205493;
+    W_e[10+(NYN) * 0] = 0.0000000000006706995314482752;
+    W_e[10+(NYN) * 1] = 0.0000000000012442383091143782;
+    W_e[10+(NYN) * 2] = 0.0000000000007363173443957935;
+    W_e[10+(NYN) * 3] = 0.00000000000008525341344901718;
+    W_e[10+(NYN) * 4] = 0.0000000000015046663026019653;
+    W_e[10+(NYN) * 5] = 0.0000000000021794137071956425;
+    W_e[10+(NYN) * 6] = 0.0000000000012307570866976633;
+    W_e[10+(NYN) * 7] = 0.00000000000010619923856140637;
+    W_e[10+(NYN) * 8] = 141.8798690914925;
+    W_e[10+(NYN) * 9] = 353.14212431400284;
+    W_e[10+(NYN) * 10] = 350.9736381800651;
+    W_e[10+(NYN) * 11] = 33.10080435808312;
+    W_e[10+(NYN) * 12] = 0.0000000000017143742779030394;
+    W_e[10+(NYN) * 13] = 0.00000000000021572034338067974;
+    W_e[11+(NYN) * 0] = 0.00000000000005323296599333685;
+    W_e[11+(NYN) * 1] = 0.00000000000009360288437072975;
+    W_e[11+(NYN) * 2] = 0.00000000000005811833105591204;
+    W_e[11+(NYN) * 3] = 0.000000000000011653125646329452;
+    W_e[11+(NYN) * 4] = 0.00000000000007885363501438339;
+    W_e[11+(NYN) * 5] = 0.00000000000011996311017797122;
+    W_e[11+(NYN) * 6] = 0.00000000000007548157430936968;
+    W_e[11+(NYN) * 7] = 0.0000000000000005843263290557355;
+    W_e[11+(NYN) * 8] = 12.31164989932678;
+    W_e[11+(NYN) * 9] = 31.712313743401435;
+    W_e[11+(NYN) * 10] = 33.10080435808312;
+    W_e[11+(NYN) * 11] = 14.157672324357698;
+    W_e[11+(NYN) * 12] = 0.000000000000156861118720242;
+    W_e[11+(NYN) * 13] = 0.000000000000027836437274325943;
+    W_e[12+(NYN) * 0] = 0.00000000000003065408431864458;
+    W_e[12+(NYN) * 1] = 0.000000000000045244573883346103;
+    W_e[12+(NYN) * 2] = 0.00000000000002068953182563419;
+    W_e[12+(NYN) * 3] = 0.000000000000003442459013090337;
+    W_e[12+(NYN) * 4] = 0.00000000000006400917425190471;
+    W_e[12+(NYN) * 5] = 0.0000000000000807820720308765;
+    W_e[12+(NYN) * 6] = 0.000000000000036182784831924;
+    W_e[12+(NYN) * 7] = 0.0000000000000016466391177790969;
+    W_e[12+(NYN) * 8] = 0.000000000001545490174906843;
+    W_e[12+(NYN) * 9] = 0.0000000000024991026629247048;
+    W_e[12+(NYN) * 10] = 0.0000000000017143742779030394;
+    W_e[12+(NYN) * 11] = 0.000000000000156861118720242;
+    W_e[12+(NYN) * 12] = 115.99184840464154;
+    W_e[12+(NYN) * 13] = 11.470952061395549;
+    W_e[13+(NYN) * 0] = 0.000000000000035293907543213025;
+    W_e[13+(NYN) * 1] = 0.00000000000004377860380740264;
+    W_e[13+(NYN) * 2] = 0.000000000000025462859694899063;
+    W_e[13+(NYN) * 3] = 0.000000000000001442461913022831;
+    W_e[13+(NYN) * 4] = 0.00000000000000896982569722482;
+    W_e[13+(NYN) * 5] = 0.000000000000024674886592622195;
+    W_e[13+(NYN) * 6] = 0.00000000000002142597695958653;
+    W_e[13+(NYN) * 7] = 0.0000000000000033769258730712913;
+    W_e[13+(NYN) * 8] = 0.0000000000001652943705607971;
+    W_e[13+(NYN) * 9] = 0.00000000000028701762434205493;
+    W_e[13+(NYN) * 10] = 0.00000000000021572034338067974;
+    W_e[13+(NYN) * 11] = 0.000000000000027836437274325943;
+    W_e[13+(NYN) * 12] = 11.470952061395549;
+    W_e[13+(NYN) * 13] = 12.158274119483668;
+    W_e[14+(NYN) * 14] = 0.001;
+    W_e[15+(NYN) * 15] = 0.001;
+    W_e[16+(NYN) * 16] = 0.001;
     ocp_nlp_cost_model_set(nlp_config, nlp_dims, nlp_in, N, "W", W_e);
     free(W_e);
     double* Vx_e = calloc(NYN*NX, sizeof(double));
@@ -606,6 +803,9 @@ void FBL_Quadcopter_ode_acados_setup_nlp_in(FBL_Quadcopter_ode_solver_capsule* c
     Vx_e[11+(NYN) * 11] = 1;
     Vx_e[12+(NYN) * 12] = 1;
     Vx_e[13+(NYN) * 13] = 1;
+    Vx_e[14+(NYN) * 14] = 1;
+    Vx_e[15+(NYN) * 15] = 1;
+    Vx_e[16+(NYN) * 16] = 1;
     ocp_nlp_cost_model_set(nlp_config, nlp_dims, nlp_in, N, "Vx", Vx_e);
     free(Vx_e);
 
@@ -634,6 +834,9 @@ void FBL_Quadcopter_ode_acados_setup_nlp_in(FBL_Quadcopter_ode_solver_capsule* c
     idxbx0[11] = 11;
     idxbx0[12] = 12;
     idxbx0[13] = 13;
+    idxbx0[14] = 14;
+    idxbx0[15] = 15;
+    idxbx0[16] = 16;
 
     double* lubx0 = calloc(2*NBX0, sizeof(double));
     double* lbx0 = lubx0;
@@ -646,7 +849,7 @@ void FBL_Quadcopter_ode_acados_setup_nlp_in(FBL_Quadcopter_ode_solver_capsule* c
     free(idxbx0);
     free(lubx0);
     // idxbxe_0
-    int* idxbxe_0 = malloc(14 * sizeof(int));
+    int* idxbxe_0 = malloc(17 * sizeof(int));
     idxbxe_0[0] = 0;
     idxbxe_0[1] = 1;
     idxbxe_0[2] = 2;
@@ -661,6 +864,9 @@ void FBL_Quadcopter_ode_acados_setup_nlp_in(FBL_Quadcopter_ode_solver_capsule* c
     idxbxe_0[11] = 11;
     idxbxe_0[12] = 12;
     idxbxe_0[13] = 13;
+    idxbxe_0[14] = 14;
+    idxbxe_0[15] = 15;
+    idxbxe_0[16] = 16;
     ocp_nlp_constraints_model_set(nlp_config, nlp_dims, nlp_in, nlp_out, 0, "idxbxe", idxbxe_0);
     free(idxbxe_0);
 
@@ -730,7 +936,7 @@ void FBL_Quadcopter_ode_acados_setup_nlp_in(FBL_Quadcopter_ode_solver_capsule* c
 }
 
 
-static void FBL_Quadcopter_ode_acados_create_set_opts(FBL_Quadcopter_ode_solver_capsule* capsule)
+static void FBL_augmented_Quadcopter_ode_acados_create_set_opts(FBL_augmented_Quadcopter_ode_solver_capsule* capsule)
 {
     const int N = capsule->nlp_solver_plan->N;
     ocp_nlp_config* nlp_config = capsule->nlp_config;
@@ -776,7 +982,7 @@ static void FBL_Quadcopter_ode_acados_create_set_opts(FBL_Quadcopter_ode_solver_
 
     // set up sim_method_num_stages
     // all sim_method_num_stages are identical
-    int sim_method_num_stages = 1;
+    int sim_method_num_stages = 4;
     for (int i = 0; i < N; i++)
         ocp_nlp_solver_opts_set_at_stage(nlp_config, nlp_opts, i, "dynamics_num_stages", &sim_method_num_stages);
 
@@ -895,9 +1101,9 @@ static void FBL_Quadcopter_ode_acados_create_set_opts(FBL_Quadcopter_ode_solver_
 
 
 /**
- * Internal function for FBL_Quadcopter_ode_acados_create: step 7
+ * Internal function for FBL_augmented_Quadcopter_ode_acados_create: step 7
  */
-void FBL_Quadcopter_ode_acados_set_nlp_out(FBL_Quadcopter_ode_solver_capsule* capsule)
+void FBL_augmented_Quadcopter_ode_acados_set_nlp_out(FBL_augmented_Quadcopter_ode_solver_capsule* capsule)
 {
     const int N = capsule->nlp_solver_plan->N;
     ocp_nlp_config* nlp_config = capsule->nlp_config;
@@ -927,9 +1133,9 @@ void FBL_Quadcopter_ode_acados_set_nlp_out(FBL_Quadcopter_ode_solver_capsule* ca
 
 
 /**
- * Internal function for FBL_Quadcopter_ode_acados_create: step 9
+ * Internal function for FBL_augmented_Quadcopter_ode_acados_create: step 9
  */
-int FBL_Quadcopter_ode_acados_create_precompute(FBL_Quadcopter_ode_solver_capsule* capsule) {
+int FBL_augmented_Quadcopter_ode_acados_create_precompute(FBL_augmented_Quadcopter_ode_solver_capsule* capsule) {
     int status = ocp_nlp_precompute(capsule->nlp_solver, capsule->nlp_in, capsule->nlp_out);
 
     if (status != ACADOS_SUCCESS) {
@@ -941,14 +1147,14 @@ int FBL_Quadcopter_ode_acados_create_precompute(FBL_Quadcopter_ode_solver_capsul
 }
 
 
-int FBL_Quadcopter_ode_acados_create_with_discretization(FBL_Quadcopter_ode_solver_capsule* capsule, int N, double* new_time_steps)
+int FBL_augmented_Quadcopter_ode_acados_create_with_discretization(FBL_augmented_Quadcopter_ode_solver_capsule* capsule, int N, double* new_time_steps)
 {
     // If N does not match the number of shooting intervals used for code generation, new_time_steps must be given.
-    if (N != FBL_QUADCOPTER_ODE_N && !new_time_steps) {
-        fprintf(stderr, "FBL_Quadcopter_ode_acados_create_with_discretization: new_time_steps is NULL " \
+    if (N != FBL_AUGMENTED_QUADCOPTER_ODE_N && !new_time_steps) {
+        fprintf(stderr, "FBL_augmented_Quadcopter_ode_acados_create_with_discretization: new_time_steps is NULL " \
             "but the number of shooting intervals (= %d) differs from the number of " \
             "shooting intervals (= %d) during code generation! Please provide a new vector of time_stamps!\n", \
-             N, FBL_QUADCOPTER_ODE_N);
+             N, FBL_AUGMENTED_QUADCOPTER_ODE_N);
         return 1;
     }
 
@@ -957,37 +1163,37 @@ int FBL_Quadcopter_ode_acados_create_with_discretization(FBL_Quadcopter_ode_solv
 
     // 1) create and set nlp_solver_plan; create nlp_config
     capsule->nlp_solver_plan = ocp_nlp_plan_create(N);
-    FBL_Quadcopter_ode_acados_create_set_plan(capsule->nlp_solver_plan, N);
+    FBL_augmented_Quadcopter_ode_acados_create_set_plan(capsule->nlp_solver_plan, N);
     capsule->nlp_config = ocp_nlp_config_create(*capsule->nlp_solver_plan);
 
     // 2) create and set dimensions
-    capsule->nlp_dims = FBL_Quadcopter_ode_acados_create_setup_dimensions(capsule);
+    capsule->nlp_dims = FBL_augmented_Quadcopter_ode_acados_create_setup_dimensions(capsule);
 
     // 3) create and set nlp_opts
     capsule->nlp_opts = ocp_nlp_solver_opts_create(capsule->nlp_config, capsule->nlp_dims);
-    FBL_Quadcopter_ode_acados_create_set_opts(capsule);
+    FBL_augmented_Quadcopter_ode_acados_create_set_opts(capsule);
 
     // 4) create and set nlp_out
     // 4.1) nlp_out
     capsule->nlp_out = ocp_nlp_out_create(capsule->nlp_config, capsule->nlp_dims);
     // 4.2) sens_out
     capsule->sens_out = ocp_nlp_out_create(capsule->nlp_config, capsule->nlp_dims);
-    FBL_Quadcopter_ode_acados_set_nlp_out(capsule);
+    FBL_augmented_Quadcopter_ode_acados_set_nlp_out(capsule);
 
     // 5) create nlp_in
     capsule->nlp_in = ocp_nlp_in_create(capsule->nlp_config, capsule->nlp_dims);
 
     // 6) setup functions, nlp_in and default parameters
-    FBL_Quadcopter_ode_acados_create_setup_functions(capsule);
-    FBL_Quadcopter_ode_acados_setup_nlp_in(capsule, N, new_time_steps);
-    FBL_Quadcopter_ode_acados_create_set_default_parameters(capsule);
+    FBL_augmented_Quadcopter_ode_acados_create_setup_functions(capsule);
+    FBL_augmented_Quadcopter_ode_acados_setup_nlp_in(capsule, N, new_time_steps);
+    FBL_augmented_Quadcopter_ode_acados_create_set_default_parameters(capsule);
 
     // 7) create solver
     capsule->nlp_solver = ocp_nlp_solver_create(capsule->nlp_config, capsule->nlp_dims, capsule->nlp_opts, capsule->nlp_in);
 
 
     // 8) do precomputations
-    int status = FBL_Quadcopter_ode_acados_create_precompute(capsule);
+    int status = FBL_augmented_Quadcopter_ode_acados_create_precompute(capsule);
 
     return status;
 }
@@ -995,7 +1201,7 @@ int FBL_Quadcopter_ode_acados_create_with_discretization(FBL_Quadcopter_ode_solv
 /**
  * This function is for updating an already initialized solver with a different number of qp_cond_N. It is useful for code reuse after code export.
  */
-int FBL_Quadcopter_ode_acados_update_qp_solver_cond_N(FBL_Quadcopter_ode_solver_capsule* capsule, int qp_solver_cond_N)
+int FBL_augmented_Quadcopter_ode_acados_update_qp_solver_cond_N(FBL_augmented_Quadcopter_ode_solver_capsule* capsule, int qp_solver_cond_N)
 {
     // 1) destroy solver
     ocp_nlp_solver_destroy(capsule->nlp_solver);
@@ -1006,17 +1212,17 @@ int FBL_Quadcopter_ode_acados_update_qp_solver_cond_N(FBL_Quadcopter_ode_solver_
         printf("Warning: qp_solver_cond_N = %d > N = %d\n", qp_solver_cond_N, N);
     ocp_nlp_solver_opts_set(capsule->nlp_config, capsule->nlp_opts, "qp_cond_N", &qp_solver_cond_N);
 
-    // 3) continue with the remaining steps from FBL_Quadcopter_ode_acados_create_with_discretization(...):
+    // 3) continue with the remaining steps from FBL_augmented_Quadcopter_ode_acados_create_with_discretization(...):
     // -> 8) create solver
     capsule->nlp_solver = ocp_nlp_solver_create(capsule->nlp_config, capsule->nlp_dims, capsule->nlp_opts, capsule->nlp_in);
 
     // -> 9) do precomputations
-    int status = FBL_Quadcopter_ode_acados_create_precompute(capsule);
+    int status = FBL_augmented_Quadcopter_ode_acados_create_precompute(capsule);
     return status;
 }
 
 
-int FBL_Quadcopter_ode_acados_reset(FBL_Quadcopter_ode_solver_capsule* capsule, int reset_qp_solver_mem)
+int FBL_augmented_Quadcopter_ode_acados_reset(FBL_augmented_Quadcopter_ode_solver_capsule* capsule, int reset_qp_solver_mem)
 {
 
     // set initialization to all zeros
@@ -1059,7 +1265,7 @@ int FBL_Quadcopter_ode_acados_reset(FBL_Quadcopter_ode_solver_capsule* capsule, 
 
 
 
-int FBL_Quadcopter_ode_acados_update_params(FBL_Quadcopter_ode_solver_capsule* capsule, int stage, double *p, int np)
+int FBL_augmented_Quadcopter_ode_acados_update_params(FBL_augmented_Quadcopter_ode_solver_capsule* capsule, int stage, double *p, int np)
 {
     int solver_status = 0;
 
@@ -1075,7 +1281,7 @@ int FBL_Quadcopter_ode_acados_update_params(FBL_Quadcopter_ode_solver_capsule* c
 }
 
 
-int FBL_Quadcopter_ode_acados_update_params_sparse(FBL_Quadcopter_ode_solver_capsule * capsule, int stage, int *idx, double *p, int n_update)
+int FBL_augmented_Quadcopter_ode_acados_update_params_sparse(FBL_augmented_Quadcopter_ode_solver_capsule * capsule, int stage, int *idx, double *p, int n_update)
 {
     ocp_nlp_in_set_params_sparse(capsule->nlp_config, capsule->nlp_dims, capsule->nlp_in, stage, idx, p, n_update);
 
@@ -1083,17 +1289,17 @@ int FBL_Quadcopter_ode_acados_update_params_sparse(FBL_Quadcopter_ode_solver_cap
 }
 
 
-int FBL_Quadcopter_ode_acados_set_p_global_and_precompute_dependencies(FBL_Quadcopter_ode_solver_capsule* capsule, double* data, int data_len)
+int FBL_augmented_Quadcopter_ode_acados_set_p_global_and_precompute_dependencies(FBL_augmented_Quadcopter_ode_solver_capsule* capsule, double* data, int data_len)
 {
 
-    // printf("No global_data, FBL_Quadcopter_ode_acados_set_p_global_and_precompute_dependencies does nothing.\n");
+    // printf("No global_data, FBL_augmented_Quadcopter_ode_acados_set_p_global_and_precompute_dependencies does nothing.\n");
     return 0;
 }
 
 
 
 
-int FBL_Quadcopter_ode_acados_solve(FBL_Quadcopter_ode_solver_capsule* capsule)
+int FBL_augmented_Quadcopter_ode_acados_solve(FBL_augmented_Quadcopter_ode_solver_capsule* capsule)
 {
     // solve NLP
     int solver_status = ocp_nlp_solve(capsule->nlp_solver, capsule->nlp_in, capsule->nlp_out);
@@ -1103,7 +1309,7 @@ int FBL_Quadcopter_ode_acados_solve(FBL_Quadcopter_ode_solver_capsule* capsule)
 
 
 
-int FBL_Quadcopter_ode_acados_setup_qp_matrices_and_factorize(FBL_Quadcopter_ode_solver_capsule* capsule)
+int FBL_augmented_Quadcopter_ode_acados_setup_qp_matrices_and_factorize(FBL_augmented_Quadcopter_ode_solver_capsule* capsule)
 {
     int solver_status = ocp_nlp_setup_qp_matrices_and_factorize(capsule->nlp_solver, capsule->nlp_in, capsule->nlp_out);
 
@@ -1115,7 +1321,7 @@ int FBL_Quadcopter_ode_acados_setup_qp_matrices_and_factorize(FBL_Quadcopter_ode
 
 
 
-int FBL_Quadcopter_ode_acados_free(FBL_Quadcopter_ode_solver_capsule* capsule)
+int FBL_augmented_Quadcopter_ode_acados_free(FBL_augmented_Quadcopter_ode_solver_capsule* capsule)
 {
     // before destroying, keep some info
     const int N = capsule->nlp_solver_plan->N;
@@ -1151,7 +1357,7 @@ int FBL_Quadcopter_ode_acados_free(FBL_Quadcopter_ode_solver_capsule* capsule)
 }
 
 
-void FBL_Quadcopter_ode_acados_print_stats(FBL_Quadcopter_ode_solver_capsule* capsule)
+void FBL_augmented_Quadcopter_ode_acados_print_stats(FBL_augmented_Quadcopter_ode_solver_capsule* capsule)
 {
     int nlp_iter, stat_m, stat_n, tmp_int;
     ocp_nlp_get(capsule->nlp_solver, "nlp_iter", &nlp_iter);
@@ -1193,7 +1399,7 @@ void FBL_Quadcopter_ode_acados_print_stats(FBL_Quadcopter_ode_solver_capsule* ca
     }
 }
 
-int FBL_Quadcopter_ode_acados_custom_update(FBL_Quadcopter_ode_solver_capsule* capsule, double* data, int data_len)
+int FBL_augmented_Quadcopter_ode_acados_custom_update(FBL_augmented_Quadcopter_ode_solver_capsule* capsule, double* data, int data_len)
 {
     (void)capsule;
     (void)data;
@@ -1206,11 +1412,11 @@ int FBL_Quadcopter_ode_acados_custom_update(FBL_Quadcopter_ode_solver_capsule* c
 
 
 
-ocp_nlp_in *FBL_Quadcopter_ode_acados_get_nlp_in(FBL_Quadcopter_ode_solver_capsule* capsule) { return capsule->nlp_in; }
-ocp_nlp_out *FBL_Quadcopter_ode_acados_get_nlp_out(FBL_Quadcopter_ode_solver_capsule* capsule) { return capsule->nlp_out; }
-ocp_nlp_out *FBL_Quadcopter_ode_acados_get_sens_out(FBL_Quadcopter_ode_solver_capsule* capsule) { return capsule->sens_out; }
-ocp_nlp_solver *FBL_Quadcopter_ode_acados_get_nlp_solver(FBL_Quadcopter_ode_solver_capsule* capsule) { return capsule->nlp_solver; }
-ocp_nlp_config *FBL_Quadcopter_ode_acados_get_nlp_config(FBL_Quadcopter_ode_solver_capsule* capsule) { return capsule->nlp_config; }
-void *FBL_Quadcopter_ode_acados_get_nlp_opts(FBL_Quadcopter_ode_solver_capsule* capsule) { return capsule->nlp_opts; }
-ocp_nlp_dims *FBL_Quadcopter_ode_acados_get_nlp_dims(FBL_Quadcopter_ode_solver_capsule* capsule) { return capsule->nlp_dims; }
-ocp_nlp_plan_t *FBL_Quadcopter_ode_acados_get_nlp_plan(FBL_Quadcopter_ode_solver_capsule* capsule) { return capsule->nlp_solver_plan; }
+ocp_nlp_in *FBL_augmented_Quadcopter_ode_acados_get_nlp_in(FBL_augmented_Quadcopter_ode_solver_capsule* capsule) { return capsule->nlp_in; }
+ocp_nlp_out *FBL_augmented_Quadcopter_ode_acados_get_nlp_out(FBL_augmented_Quadcopter_ode_solver_capsule* capsule) { return capsule->nlp_out; }
+ocp_nlp_out *FBL_augmented_Quadcopter_ode_acados_get_sens_out(FBL_augmented_Quadcopter_ode_solver_capsule* capsule) { return capsule->sens_out; }
+ocp_nlp_solver *FBL_augmented_Quadcopter_ode_acados_get_nlp_solver(FBL_augmented_Quadcopter_ode_solver_capsule* capsule) { return capsule->nlp_solver; }
+ocp_nlp_config *FBL_augmented_Quadcopter_ode_acados_get_nlp_config(FBL_augmented_Quadcopter_ode_solver_capsule* capsule) { return capsule->nlp_config; }
+void *FBL_augmented_Quadcopter_ode_acados_get_nlp_opts(FBL_augmented_Quadcopter_ode_solver_capsule* capsule) { return capsule->nlp_opts; }
+ocp_nlp_dims *FBL_augmented_Quadcopter_ode_acados_get_nlp_dims(FBL_augmented_Quadcopter_ode_solver_capsule* capsule) { return capsule->nlp_dims; }
+ocp_nlp_plan_t *FBL_augmented_Quadcopter_ode_acados_get_nlp_plan(FBL_augmented_Quadcopter_ode_solver_capsule* capsule) { return capsule->nlp_solver_plan; }

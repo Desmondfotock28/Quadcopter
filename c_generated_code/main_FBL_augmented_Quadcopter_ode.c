@@ -37,40 +37,40 @@
 #include "acados/utils/math.h"
 #include "acados_c/ocp_nlp_interface.h"
 #include "acados_c/external_function_interface.h"
-#include "acados_solver_FBL_Quadcopter_ode.h"
+#include "acados_solver_FBL_augmented_Quadcopter_ode.h"
 
 // blasfeo
 #include "blasfeo_d_aux_ext_dep.h"
 
-#define NX     FBL_QUADCOPTER_ODE_NX
-#define NP     FBL_QUADCOPTER_ODE_NP
-#define NU     FBL_QUADCOPTER_ODE_NU
-#define NBX0   FBL_QUADCOPTER_ODE_NBX0
-#define NP_GLOBAL   FBL_QUADCOPTER_ODE_NP_GLOBAL
+#define NX     FBL_AUGMENTED_QUADCOPTER_ODE_NX
+#define NP     FBL_AUGMENTED_QUADCOPTER_ODE_NP
+#define NU     FBL_AUGMENTED_QUADCOPTER_ODE_NU
+#define NBX0   FBL_AUGMENTED_QUADCOPTER_ODE_NBX0
+#define NP_GLOBAL   FBL_AUGMENTED_QUADCOPTER_ODE_NP_GLOBAL
 
 
 int main()
 {
 
-    FBL_Quadcopter_ode_solver_capsule *acados_ocp_capsule = FBL_Quadcopter_ode_acados_create_capsule();
+    FBL_augmented_Quadcopter_ode_solver_capsule *acados_ocp_capsule = FBL_augmented_Quadcopter_ode_acados_create_capsule();
     // there is an opportunity to change the number of shooting intervals in C without new code generation
-    int N = FBL_QUADCOPTER_ODE_N;
+    int N = FBL_AUGMENTED_QUADCOPTER_ODE_N;
     // allocate the array and fill it accordingly
     double* new_time_steps = NULL;
-    int status = FBL_Quadcopter_ode_acados_create_with_discretization(acados_ocp_capsule, N, new_time_steps);
+    int status = FBL_augmented_Quadcopter_ode_acados_create_with_discretization(acados_ocp_capsule, N, new_time_steps);
 
     if (status)
     {
-        printf("FBL_Quadcopter_ode_acados_create() returned status %d. Exiting.\n", status);
+        printf("FBL_augmented_Quadcopter_ode_acados_create() returned status %d. Exiting.\n", status);
         exit(1);
     }
 
-    ocp_nlp_config *nlp_config = FBL_Quadcopter_ode_acados_get_nlp_config(acados_ocp_capsule);
-    ocp_nlp_dims *nlp_dims = FBL_Quadcopter_ode_acados_get_nlp_dims(acados_ocp_capsule);
-    ocp_nlp_in *nlp_in = FBL_Quadcopter_ode_acados_get_nlp_in(acados_ocp_capsule);
-    ocp_nlp_out *nlp_out = FBL_Quadcopter_ode_acados_get_nlp_out(acados_ocp_capsule);
-    ocp_nlp_solver *nlp_solver = FBL_Quadcopter_ode_acados_get_nlp_solver(acados_ocp_capsule);
-    void *nlp_opts = FBL_Quadcopter_ode_acados_get_nlp_opts(acados_ocp_capsule);
+    ocp_nlp_config *nlp_config = FBL_augmented_Quadcopter_ode_acados_get_nlp_config(acados_ocp_capsule);
+    ocp_nlp_dims *nlp_dims = FBL_augmented_Quadcopter_ode_acados_get_nlp_dims(acados_ocp_capsule);
+    ocp_nlp_in *nlp_in = FBL_augmented_Quadcopter_ode_acados_get_nlp_in(acados_ocp_capsule);
+    ocp_nlp_out *nlp_out = FBL_augmented_Quadcopter_ode_acados_get_nlp_out(acados_ocp_capsule);
+    ocp_nlp_solver *nlp_solver = FBL_augmented_Quadcopter_ode_acados_get_nlp_solver(acados_ocp_capsule);
+    void *nlp_opts = FBL_augmented_Quadcopter_ode_acados_get_nlp_opts(acados_ocp_capsule);
     // initial condition
     double lbx0[NBX0];
     double ubx0[NBX0];
@@ -102,6 +102,12 @@ int main()
     ubx0[12] = 0;
     lbx0[13] = 0;
     ubx0[13] = 0;
+    lbx0[14] = 0;
+    ubx0[14] = 0;
+    lbx0[15] = 0;
+    ubx0[15] = 0;
+    lbx0[16] = 0;
+    ubx0[16] = 0;
 
     ocp_nlp_constraints_model_set(nlp_config, nlp_dims, nlp_in, nlp_out, 0, "lbx", lbx0);
     ocp_nlp_constraints_model_set(nlp_config, nlp_dims, nlp_in, nlp_out, 0, "ubx", ubx0);
@@ -122,6 +128,9 @@ int main()
     x_init[11] = 0.0;
     x_init[12] = 0.0;
     x_init[13] = 0.0;
+    x_init[14] = 0.0;
+    x_init[15] = 0.0;
+    x_init[16] = 0.0;
 
     // initial value for control input
     double u0[NU];
@@ -150,7 +159,7 @@ int main()
             ocp_nlp_out_set(nlp_config, nlp_dims, nlp_out, nlp_in, i, "u", u0);
         }
         ocp_nlp_out_set(nlp_config, nlp_dims, nlp_out, nlp_in, N, "x", x_init);
-        status = FBL_Quadcopter_ode_acados_solve(acados_ocp_capsule);
+        status = FBL_augmented_Quadcopter_ode_acados_solve(acados_ocp_capsule);
         ocp_nlp_get(nlp_solver, "time_tot", &elapsed_time);
         min_time = MIN(elapsed_time, min_time);
     }
@@ -171,18 +180,18 @@ int main()
 
     if (status == ACADOS_SUCCESS)
     {
-        printf("FBL_Quadcopter_ode_acados_solve(): SUCCESS!\n");
+        printf("FBL_augmented_Quadcopter_ode_acados_solve(): SUCCESS!\n");
     }
     else
     {
-        printf("FBL_Quadcopter_ode_acados_solve() failed with status %d.\n", status);
+        printf("FBL_augmented_Quadcopter_ode_acados_solve() failed with status %d.\n", status);
     }
 
     // get solution
     ocp_nlp_out_get(nlp_config, nlp_dims, nlp_out, 0, "kkt_norm_inf", &kkt_norm_inf);
     ocp_nlp_get(nlp_solver, "sqp_iter", &sqp_iter);
 
-    FBL_Quadcopter_ode_acados_print_stats(acados_ocp_capsule);
+    FBL_augmented_Quadcopter_ode_acados_print_stats(acados_ocp_capsule);
 
     printf("\nSolver info:\n");
     printf(" SQP iterations %2d\n minimum time for %d solve %f [ms]\n KKT %e\n",
@@ -191,14 +200,14 @@ int main()
 
 
     // free solver
-    status = FBL_Quadcopter_ode_acados_free(acados_ocp_capsule);
+    status = FBL_augmented_Quadcopter_ode_acados_free(acados_ocp_capsule);
     if (status) {
-        printf("FBL_Quadcopter_ode_acados_free() returned status %d. \n", status);
+        printf("FBL_augmented_Quadcopter_ode_acados_free() returned status %d. \n", status);
     }
     // free solver capsule
-    status = FBL_Quadcopter_ode_acados_free_capsule(acados_ocp_capsule);
+    status = FBL_augmented_Quadcopter_ode_acados_free_capsule(acados_ocp_capsule);
     if (status) {
-        printf("FBL_Quadcopter_ode_acados_free_capsule() returned status %d. \n", status);
+        printf("FBL_augmented_Quadcopter_ode_acados_free_capsule() returned status %d. \n", status);
     }
 
     return status;

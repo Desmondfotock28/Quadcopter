@@ -36,24 +36,8 @@ def get_continous_time_matrices():
         [0,0,0,1],
     ], dtype=float)
 
-    B_d = np.array([
-        [0,0,0],
-        [1,0,0],  # d0
-        [0,0,0],
-        [0,0,0],
-        [0,0,0],
-        [0,1,0],  # d1
-        [0,0,0],
-        [0,0,0],
-        [0,0,0],
-        [0,0,1],  # d2
-        [0,0,0],
-        [0,0,0],
-        [0,0,0],
-        [0,0,0],
-    ], dtype=float)
 
-    return A, B, B_d
+    return A, B
 
 
 def plot_xyz_subplots(t, x_pred):

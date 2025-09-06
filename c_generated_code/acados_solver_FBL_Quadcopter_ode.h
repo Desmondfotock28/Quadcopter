@@ -36,13 +36,13 @@
 #include "acados_c/ocp_nlp_interface.h"
 #include "acados_c/external_function_interface.h"
 
-#define FBL_QUADCOPTER_ODE_NX     17
+#define FBL_QUADCOPTER_ODE_NX     14
 #define FBL_QUADCOPTER_ODE_NZ     0
 #define FBL_QUADCOPTER_ODE_NU     4
 #define FBL_QUADCOPTER_ODE_NP     0
 #define FBL_QUADCOPTER_ODE_NP_GLOBAL     0
 #define FBL_QUADCOPTER_ODE_NBX    0
-#define FBL_QUADCOPTER_ODE_NBX0   17
+#define FBL_QUADCOPTER_ODE_NBX0   14
 #define FBL_QUADCOPTER_ODE_NBU    4
 #define FBL_QUADCOPTER_ODE_NSBX   0
 #define FBL_QUADCOPTER_ODE_NSBU   0
@@ -61,9 +61,9 @@
 #define FBL_QUADCOPTER_ODE_NG     0
 #define FBL_QUADCOPTER_ODE_NBXN   0
 #define FBL_QUADCOPTER_ODE_NGN    0
-#define FBL_QUADCOPTER_ODE_NY0    21
-#define FBL_QUADCOPTER_ODE_NY     21
-#define FBL_QUADCOPTER_ODE_NYN    17
+#define FBL_QUADCOPTER_ODE_NY0    18
+#define FBL_QUADCOPTER_ODE_NY     18
+#define FBL_QUADCOPTER_ODE_NYN    14
 #define FBL_QUADCOPTER_ODE_N      10
 #define FBL_QUADCOPTER_ODE_NH     0
 #define FBL_QUADCOPTER_ODE_NHN    0
@@ -98,9 +98,9 @@ typedef struct FBL_Quadcopter_ode_solver_capsule
 
     // dynamics
 
-    external_function_external_param_casadi *impl_dae_fun;
-    external_function_external_param_casadi *impl_dae_fun_jac_x_xdot_z;
-    external_function_external_param_casadi *impl_dae_jac_x_xdot_u_z;
+    external_function_external_param_casadi *expl_vde_forw;
+    external_function_external_param_casadi *expl_ode_fun;
+    external_function_external_param_casadi *expl_vde_adj;
 
 
 

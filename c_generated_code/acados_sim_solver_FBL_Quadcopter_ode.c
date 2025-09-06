@@ -80,39 +80,40 @@ int FBL_Quadcopter_ode_acados_sim_create(FBL_Quadcopter_ode_sim_solver_capsule *
     ext_fun_opts.external_workspace = false;
 
     
-    capsule->sim_impl_dae_fun = (external_function_param_casadi *) malloc(sizeof(external_function_param_casadi));
-    capsule->sim_impl_dae_fun_jac_x_xdot_z = (external_function_param_casadi *) malloc(sizeof(external_function_param_casadi));
-    capsule->sim_impl_dae_jac_x_xdot_u_z = (external_function_param_casadi *) malloc(sizeof(external_function_param_casadi));
-    // external functions (implicit model)
-    capsule->sim_impl_dae_fun->casadi_fun = &FBL_Quadcopter_ode_impl_dae_fun;
-    capsule->sim_impl_dae_fun->casadi_work = &FBL_Quadcopter_ode_impl_dae_fun_work;
-    capsule->sim_impl_dae_fun->casadi_sparsity_in = &FBL_Quadcopter_ode_impl_dae_fun_sparsity_in;
-    capsule->sim_impl_dae_fun->casadi_sparsity_out = &FBL_Quadcopter_ode_impl_dae_fun_sparsity_out;
-    capsule->sim_impl_dae_fun->casadi_n_in = &FBL_Quadcopter_ode_impl_dae_fun_n_in;
-    capsule->sim_impl_dae_fun->casadi_n_out = &FBL_Quadcopter_ode_impl_dae_fun_n_out;
-    external_function_param_casadi_create(capsule->sim_impl_dae_fun, np, &ext_fun_opts);
+    // explicit ode
+    capsule->sim_expl_vde_forw = (external_function_param_casadi *) malloc(sizeof(external_function_param_casadi));
+    capsule->sim_vde_adj_casadi = (external_function_param_casadi *) malloc(sizeof(external_function_param_casadi));
+    capsule->sim_expl_ode_fun_casadi = (external_function_param_casadi *) malloc(sizeof(external_function_param_casadi));
 
-    capsule->sim_impl_dae_fun_jac_x_xdot_z->casadi_fun = &FBL_Quadcopter_ode_impl_dae_fun_jac_x_xdot_z;
-    capsule->sim_impl_dae_fun_jac_x_xdot_z->casadi_work = &FBL_Quadcopter_ode_impl_dae_fun_jac_x_xdot_z_work;
-    capsule->sim_impl_dae_fun_jac_x_xdot_z->casadi_sparsity_in = &FBL_Quadcopter_ode_impl_dae_fun_jac_x_xdot_z_sparsity_in;
-    capsule->sim_impl_dae_fun_jac_x_xdot_z->casadi_sparsity_out = &FBL_Quadcopter_ode_impl_dae_fun_jac_x_xdot_z_sparsity_out;
-    capsule->sim_impl_dae_fun_jac_x_xdot_z->casadi_n_in = &FBL_Quadcopter_ode_impl_dae_fun_jac_x_xdot_z_n_in;
-    capsule->sim_impl_dae_fun_jac_x_xdot_z->casadi_n_out = &FBL_Quadcopter_ode_impl_dae_fun_jac_x_xdot_z_n_out;
-    external_function_param_casadi_create(capsule->sim_impl_dae_fun_jac_x_xdot_z, np, &ext_fun_opts);
+    capsule->sim_expl_vde_forw->casadi_fun = &FBL_Quadcopter_ode_expl_vde_forw;
+    capsule->sim_expl_vde_forw->casadi_n_in = &FBL_Quadcopter_ode_expl_vde_forw_n_in;
+    capsule->sim_expl_vde_forw->casadi_n_out = &FBL_Quadcopter_ode_expl_vde_forw_n_out;
+    capsule->sim_expl_vde_forw->casadi_sparsity_in = &FBL_Quadcopter_ode_expl_vde_forw_sparsity_in;
+    capsule->sim_expl_vde_forw->casadi_sparsity_out = &FBL_Quadcopter_ode_expl_vde_forw_sparsity_out;
+    capsule->sim_expl_vde_forw->casadi_work = &FBL_Quadcopter_ode_expl_vde_forw_work;
+    external_function_param_casadi_create(capsule->sim_expl_vde_forw, np, &ext_fun_opts);
 
-    capsule->sim_impl_dae_jac_x_xdot_u_z->casadi_fun = &FBL_Quadcopter_ode_impl_dae_jac_x_xdot_u_z;
-    capsule->sim_impl_dae_jac_x_xdot_u_z->casadi_work = &FBL_Quadcopter_ode_impl_dae_jac_x_xdot_u_z_work;
-    capsule->sim_impl_dae_jac_x_xdot_u_z->casadi_sparsity_in = &FBL_Quadcopter_ode_impl_dae_jac_x_xdot_u_z_sparsity_in;
-    capsule->sim_impl_dae_jac_x_xdot_u_z->casadi_sparsity_out = &FBL_Quadcopter_ode_impl_dae_jac_x_xdot_u_z_sparsity_out;
-    capsule->sim_impl_dae_jac_x_xdot_u_z->casadi_n_in = &FBL_Quadcopter_ode_impl_dae_jac_x_xdot_u_z_n_in;
-    capsule->sim_impl_dae_jac_x_xdot_u_z->casadi_n_out = &FBL_Quadcopter_ode_impl_dae_jac_x_xdot_u_z_n_out;
-    external_function_param_casadi_create(capsule->sim_impl_dae_jac_x_xdot_u_z, np, &ext_fun_opts);
+    capsule->sim_vde_adj_casadi->casadi_fun = &FBL_Quadcopter_ode_expl_vde_adj;
+    capsule->sim_vde_adj_casadi->casadi_n_in = &FBL_Quadcopter_ode_expl_vde_adj_n_in;
+    capsule->sim_vde_adj_casadi->casadi_n_out = &FBL_Quadcopter_ode_expl_vde_adj_n_out;
+    capsule->sim_vde_adj_casadi->casadi_sparsity_in = &FBL_Quadcopter_ode_expl_vde_adj_sparsity_in;
+    capsule->sim_vde_adj_casadi->casadi_sparsity_out = &FBL_Quadcopter_ode_expl_vde_adj_sparsity_out;
+    capsule->sim_vde_adj_casadi->casadi_work = &FBL_Quadcopter_ode_expl_vde_adj_work;
+    external_function_param_casadi_create(capsule->sim_vde_adj_casadi, np, &ext_fun_opts);
+
+    capsule->sim_expl_ode_fun_casadi->casadi_fun = &FBL_Quadcopter_ode_expl_ode_fun;
+    capsule->sim_expl_ode_fun_casadi->casadi_n_in = &FBL_Quadcopter_ode_expl_ode_fun_n_in;
+    capsule->sim_expl_ode_fun_casadi->casadi_n_out = &FBL_Quadcopter_ode_expl_ode_fun_n_out;
+    capsule->sim_expl_ode_fun_casadi->casadi_sparsity_in = &FBL_Quadcopter_ode_expl_ode_fun_sparsity_in;
+    capsule->sim_expl_ode_fun_casadi->casadi_sparsity_out = &FBL_Quadcopter_ode_expl_ode_fun_sparsity_out;
+    capsule->sim_expl_ode_fun_casadi->casadi_work = &FBL_Quadcopter_ode_expl_ode_fun_work;
+    external_function_param_casadi_create(capsule->sim_expl_ode_fun_casadi, np, &ext_fun_opts);
 
     
 
     // sim plan & config
     sim_solver_plan_t plan;
-    plan.sim_solver = IRK;
+    plan.sim_solver = ERK;
 
     // create correct config based on plan
     sim_config * FBL_Quadcopter_ode_sim_config = sim_config_create(plan);
@@ -137,7 +138,7 @@ int FBL_Quadcopter_ode_acados_sim_create(FBL_Quadcopter_ode_sim_solver_capsule *
     sim_opts_set(FBL_Quadcopter_ode_sim_config, FBL_Quadcopter_ode_sim_opts, "collocation_type", &collocation_type);
 
  
-    tmp_int = 4;
+    tmp_int = 1;
     sim_opts_set(FBL_Quadcopter_ode_sim_config, FBL_Quadcopter_ode_sim_opts, "num_stages", &tmp_int);
     tmp_int = 1;
     sim_opts_set(FBL_Quadcopter_ode_sim_config, FBL_Quadcopter_ode_sim_opts, "num_steps", &tmp_int);
@@ -156,11 +157,11 @@ int FBL_Quadcopter_ode_acados_sim_create(FBL_Quadcopter_ode_sim_solver_capsule *
 
     // model functions
     FBL_Quadcopter_ode_sim_config->model_set(FBL_Quadcopter_ode_sim_in->model,
-                 "impl_ode_fun", capsule->sim_impl_dae_fun);
+                 "expl_vde_forw", capsule->sim_expl_vde_forw);
     FBL_Quadcopter_ode_sim_config->model_set(FBL_Quadcopter_ode_sim_in->model,
-                 "impl_ode_fun_jac_x_xdot", capsule->sim_impl_dae_fun_jac_x_xdot_z);
+                 "expl_vde_adj", capsule->sim_vde_adj_casadi);
     FBL_Quadcopter_ode_sim_config->model_set(FBL_Quadcopter_ode_sim_in->model,
-                 "impl_ode_jac_x_xdot_u", capsule->sim_impl_dae_jac_x_xdot_u_z);
+                 "expl_ode_fun", capsule->sim_expl_ode_fun_casadi);
 
     // sim solver
     sim_solver *FBL_Quadcopter_ode_sim_solver = sim_solver_create(FBL_Quadcopter_ode_sim_config,
@@ -171,8 +172,8 @@ int FBL_Quadcopter_ode_acados_sim_create(FBL_Quadcopter_ode_sim_solver_capsule *
 
     /* initialize input */
     // x
-    double x0[17];
-    for (int ii = 0; ii < 17; ii++)
+    double x0[14];
+    for (int ii = 0; ii < 14; ii++)
         x0[ii] = 0.0;
 
     sim_in_set(FBL_Quadcopter_ode_sim_config, FBL_Quadcopter_ode_sim_dims,
@@ -188,11 +189,11 @@ int FBL_Quadcopter_ode_acados_sim_create(FBL_Quadcopter_ode_sim_solver_capsule *
                FBL_Quadcopter_ode_sim_in, "u", u0);
 
     // S_forw
-    double S_forw[357];
-    for (int ii = 0; ii < 357; ii++)
+    double S_forw[252];
+    for (int ii = 0; ii < 252; ii++)
         S_forw[ii] = 0.0;
-    for (int ii = 0; ii < 17; ii++)
-        S_forw[ii + ii * 17 ] = 1.0;
+    for (int ii = 0; ii < 14; ii++)
+        S_forw[ii + ii * 14 ] = 1.0;
 
 
     sim_in_set(FBL_Quadcopter_ode_sim_config, FBL_Quadcopter_ode_sim_dims,
@@ -229,12 +230,12 @@ int FBL_Quadcopter_ode_acados_sim_free(FBL_Quadcopter_ode_sim_solver_capsule *ca
     sim_config_destroy(capsule->acados_sim_config);
 
     // free external function
-    external_function_param_casadi_free(capsule->sim_impl_dae_fun);
-    external_function_param_casadi_free(capsule->sim_impl_dae_fun_jac_x_xdot_z);
-    external_function_param_casadi_free(capsule->sim_impl_dae_jac_x_xdot_u_z);
-    free(capsule->sim_impl_dae_fun);
-    free(capsule->sim_impl_dae_fun_jac_x_xdot_z);
-    free(capsule->sim_impl_dae_jac_x_xdot_u_z);
+    external_function_param_casadi_free(capsule->sim_expl_vde_forw);
+    external_function_param_casadi_free(capsule->sim_vde_adj_casadi);
+    external_function_param_casadi_free(capsule->sim_expl_ode_fun_casadi);
+    free(capsule->sim_expl_vde_forw);
+    free(capsule->sim_vde_adj_casadi);
+    free(capsule->sim_expl_ode_fun_casadi);
 
     return 0;
 }
@@ -250,9 +251,9 @@ int FBL_Quadcopter_ode_acados_sim_update_params(FBL_Quadcopter_ode_sim_solver_ca
             " External function has %i parameters. Exiting.\n", np, casadi_np);
         exit(1);
     }
-    capsule->sim_impl_dae_fun[0].set_param(capsule->sim_impl_dae_fun, p);
-    capsule->sim_impl_dae_fun_jac_x_xdot_z[0].set_param(capsule->sim_impl_dae_fun_jac_x_xdot_z, p);
-    capsule->sim_impl_dae_jac_x_xdot_u_z[0].set_param(capsule->sim_impl_dae_jac_x_xdot_u_z, p);
+    capsule->sim_expl_vde_forw[0].set_param(capsule->sim_expl_vde_forw, p);
+    capsule->sim_vde_adj_casadi[0].set_param(capsule->sim_vde_adj_casadi, p);
+    capsule->sim_expl_ode_fun_casadi[0].set_param(capsule->sim_expl_ode_fun_casadi, p);
 
     return status;
 }

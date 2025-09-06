@@ -36,19 +36,19 @@
 #include "acados/utils/print.h"
 #include "acados/utils/math.h"
 #include "acados_c/sim_interface.h"
-#include "acados_sim_solver_FBL_Quadcopter_ode.h"
+#include "acados_sim_solver_FBL_augmented_Quadcopter_ode.h"
 
-#define NX     FBL_QUADCOPTER_ODE_NX
-#define NZ     FBL_QUADCOPTER_ODE_NZ
-#define NU     FBL_QUADCOPTER_ODE_NU
-#define NP     FBL_QUADCOPTER_ODE_NP
+#define NX     FBL_AUGMENTED_QUADCOPTER_ODE_NX
+#define NZ     FBL_AUGMENTED_QUADCOPTER_ODE_NZ
+#define NU     FBL_AUGMENTED_QUADCOPTER_ODE_NU
+#define NP     FBL_AUGMENTED_QUADCOPTER_ODE_NP
 
 
 int main()
 {
     int status = 0;
-    FBL_Quadcopter_ode_sim_solver_capsule *capsule = FBL_Quadcopter_ode_acados_sim_solver_create_capsule();
-    status = FBL_Quadcopter_ode_acados_sim_create(capsule);
+    FBL_augmented_Quadcopter_ode_sim_solver_capsule *capsule = FBL_augmented_Quadcopter_ode_acados_sim_solver_create_capsule();
+    status = FBL_augmented_Quadcopter_ode_acados_sim_create(capsule);
 
     if (status)
     {
@@ -56,10 +56,10 @@ int main()
         exit(1);
     }
 
-    sim_config *acados_sim_config = FBL_Quadcopter_ode_acados_get_sim_config(capsule);
-    sim_in *acados_sim_in = FBL_Quadcopter_ode_acados_get_sim_in(capsule);
-    sim_out *acados_sim_out = FBL_Quadcopter_ode_acados_get_sim_out(capsule);
-    void *acados_sim_dims = FBL_Quadcopter_ode_acados_get_sim_dims(capsule);
+    sim_config *acados_sim_config = FBL_augmented_Quadcopter_ode_acados_get_sim_config(capsule);
+    sim_in *acados_sim_in = FBL_augmented_Quadcopter_ode_acados_get_sim_in(capsule);
+    sim_out *acados_sim_out = FBL_augmented_Quadcopter_ode_acados_get_sim_out(capsule);
+    void *acados_sim_dims = FBL_augmented_Quadcopter_ode_acados_get_sim_dims(capsule);
 
     // initial condition
     double x_current[NX];
@@ -77,6 +77,9 @@ int main()
     x_current[11] = 0.0;
     x_current[12] = 0.0;
     x_current[13] = 0.0;
+    x_current[14] = 0.0;
+    x_current[15] = 0.0;
+    x_current[16] = 0.0;
 
   
     x_current[0] = 0;
@@ -93,6 +96,9 @@ int main()
     x_current[11] = 0;
     x_current[12] = 0;
     x_current[13] = 0;
+    x_current[14] = 0;
+    x_current[15] = 0;
+    x_current[16] = 0;
     
   
 
@@ -118,7 +124,7 @@ int main()
             acados_sim_in, "u", u0);
 
         // solve
-        status = FBL_Quadcopter_ode_acados_sim_solve(capsule);
+        status = FBL_augmented_Quadcopter_ode_acados_sim_solve(capsule);
         if (status != ACADOS_SUCCESS)
         {
             printf("acados_solve() failed with status %d.\n", status);
@@ -141,12 +147,12 @@ int main()
     printf("\nPerformed %d simulation steps with acados integrator successfully.\n\n", n_sim_steps);
 
     // free solver
-    status = FBL_Quadcopter_ode_acados_sim_free(capsule);
+    status = FBL_augmented_Quadcopter_ode_acados_sim_free(capsule);
     if (status) {
-        printf("FBL_Quadcopter_ode_acados_sim_free() returned status %d. \n", status);
+        printf("FBL_augmented_Quadcopter_ode_acados_sim_free() returned status %d. \n", status);
     }
 
-    FBL_Quadcopter_ode_acados_sim_solver_free_capsule(capsule);
+    FBL_augmented_Quadcopter_ode_acados_sim_solver_free_capsule(capsule);
 
     return status;
 }
