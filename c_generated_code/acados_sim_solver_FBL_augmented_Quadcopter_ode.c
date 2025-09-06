@@ -138,7 +138,7 @@ int FBL_augmented_Quadcopter_ode_acados_sim_create(FBL_augmented_Quadcopter_ode_
     sim_opts_set(FBL_augmented_Quadcopter_ode_sim_config, FBL_augmented_Quadcopter_ode_sim_opts, "collocation_type", &collocation_type);
 
  
-    tmp_int = 4;
+    tmp_int = 1;
     sim_opts_set(FBL_augmented_Quadcopter_ode_sim_config, FBL_augmented_Quadcopter_ode_sim_opts, "num_stages", &tmp_int);
     tmp_int = 1;
     sim_opts_set(FBL_augmented_Quadcopter_ode_sim_config, FBL_augmented_Quadcopter_ode_sim_opts, "num_steps", &tmp_int);
@@ -181,16 +181,16 @@ int FBL_augmented_Quadcopter_ode_acados_sim_create(FBL_augmented_Quadcopter_ode_
 
 
     // u
-    double u0[4];
-    for (int ii = 0; ii < 4; ii++)
+    double u0[7];
+    for (int ii = 0; ii < 7; ii++)
         u0[ii] = 0.0;
 
     sim_in_set(FBL_augmented_Quadcopter_ode_sim_config, FBL_augmented_Quadcopter_ode_sim_dims,
                FBL_augmented_Quadcopter_ode_sim_in, "u", u0);
 
     // S_forw
-    double S_forw[357];
-    for (int ii = 0; ii < 357; ii++)
+    double S_forw[408];
+    for (int ii = 0; ii < 408; ii++)
         S_forw[ii] = 0.0;
     for (int ii = 0; ii < 17; ii++)
         S_forw[ii + ii * 17 ] = 1.0;

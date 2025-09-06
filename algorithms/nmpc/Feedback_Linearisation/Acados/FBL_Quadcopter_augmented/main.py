@@ -1,28 +1,37 @@
 from acados_template import AcadosOcp, AcadosOcpSolver, AcadosSimSolver
-from FBL_Quadcopter import export_feedback_lineraise_Quadcopter_ode_model
+from FBL_Quadcopter_augmented import export_augmented_feedback_lineraise_Quadcopter_ode_model
 import numpy as np
-import time
+import time 
+from control import dare 
 import scipy.linalg
-from control import dare
 from utils import plot_3d_trajectory, plot_xyz_subplots, reference_state, get_continous_time_matrices
-
 
 w0 = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0,0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
 
 nw = w0.shape[0]
-
+d0 = np.array([0.0, 0.0, 0.0])
+Z0 = np.concatenate([w0, d0])
+nz = Z0.shape[0]
 N_horizon = 10
 T_horizon = 1.0
 Ts = T_horizon /N_horizon
-
-
+t0 = 0.0
 
 # Input bounds for v (virtual controls)
 lb_v = np.array([-1.0, -0.05, -0.05, -0.05])
 
 ub_v = np.array([ 1.0,  0.05,  0.05,  0.05])
 
+
+# bounds on disturbance  
+lb_d = np.array([-2.0, -2.0, -2.0])
+ub_d = np.array([ 2.0,  2.0,  2.0])
+
 nv = lb_v.shape[0]
+nd = d0.shape[0]
+
+lb_v_extended = np.hstack([lb_v, -2*np.ones(nd)])
+ub_v_extended = np.hstack([ub_v,  2*np.ones(nd)])
 
 
 
@@ -31,74 +40,73 @@ def create_ocp_solver_description() -> AcadosOcp:
     ocp = AcadosOcp()
  
     # set model
-    model = export_feedback_lineraise_Quadcopter_ode_model()
+    model = export_augmented_feedback_lineraise_Quadcopter_ode_model()
 
     ocp.model = model
 
     # set dimensions
     ocp.dims.N = N_horizon
 
-
     # set cost
 
-    # cost type: linear least squares over [w; v]
+    # cost type: linear least squares over [z; v]
 
-    # y = [w; v], W = block_diag(Q_w, R_v) 
+    # y = [z; v], W = block_diag(Q_aug, R) where Q_aug = block_diag(Q_w, Q_d)
 
     # state cost (x part)
-    Q_w = np.diag([
-            10,  # w1 (x-position)
-            2,  # w2 
-            2,  # w3 
-            2,   # w4 
-            10,   # w5 (y-position)
-            2,   # w6 
-            2,   # w7 
-            2,   # w8 
-            10,   # w9 (altitude)
-            10,   # w10 
-            10,   # w11 
-            10,    # w12 
-            10,   # w13 (yaw )
-            10    #w14
-        ]) # (nw x nw)
+    Q_w = np.diag([10,2,2,2, 10,2,2,2, 10,2,2,2, 10,10])  # (nw x nw)
 
-     # penalty on virtual control v
+    # penalty on virtual control v
+    R_v = 0.01 * np.eye(nv)
+    
+    #penalty on disturbance input 
+    R_d = 0.0001*np.eye(nd)   
 
-    R_v = 0.01
-    R_v = R_v*np.diag(np.ones(nv))
+    # penalty on disturbance d 
+    Q_d = np.diag([0, 0, 0])
 
-    W_stage =  scipy.linalg.block_diag(Q_w, R_v)
+    Q_aug = scipy.linalg.block_diag(Q_w, Q_d)                           # augmented state cost (nw+nd)
 
+    R_aug = scipy.linalg.block_diag(R_v,  R_d) 
 
-    # build Vx and Vu matrices mapping z and v to y
+    W_stage =  scipy.linalg.block_diag(Q_aug, R_aug)                      # augmented input cost (nv+nd)
+   
+    S_aug = scipy.linalg.block_diag(10*Q_w, Q_d)  
 
-    Vx = np.vstack([np.eye(nw), np.zeros((nv, nw))])   # (w_dim + v_dim) x z_dim
-    Vu = np.vstack([np.zeros((nw, nv)), np.eye(nv)])  # (w_dim+v_dim) x v_dim
+    # build Vx and Vu matrices mapping Z and v to y
 
-    # set prediction horizon
-    ocp.solver_options.tf = T_horizon
+    Vx = np.vstack([np.eye(nz), np.zeros((nv+nd, nz))])   # (z_dim + v_dim) x z_dim
+    Vu = np.vstack([np.zeros((nz, nv+nd)), np.eye(nv+nd)])  # (z_dim+v_dim) x v_dim
+   
+
 
     ocp.cost.cost_type = 'LINEAR_LS'
     ocp.cost.W = W_stage
     ocp.cost.Vx = Vx
     ocp.cost.Vu = Vu
-    ocp.cost.yref = np.zeros(nw + nv)
+    ocp.cost.yref = np.zeros(nz + nv + nd)
 
-
-     # terminal cost on w only:
+      # terminal cost on z only:
     ocp.cost.cost_type_e = 'LINEAR_LS'
-    ocp.cost.W_e = 10*Q_w
-    ocp.cost.Vx_e =   np.eye(nw)
-    ocp.cost.yref_e = np.zeros(nw)
+    ocp.cost.W_e = S_aug
+    ocp.cost.Vx_e =   np.eye(nz)
+    ocp.cost.yref_e = np.zeros(nz)
 
+    # constraints: set bounds on v_tot (both v and delta) via idxbu
+    ocp.constraints.idxbu = np.arange(nv+nd, dtype=int)
+    ocp.constraints.lbu = lb_v_extended
+    ocp.constraints.ubu = ub_v_extended
 
-     # constraints: set bounds on v idxbu
-    ocp.constraints.idxbu = np.arange(nv)   # indices of bounded inputs
-    ocp.constraints.lbu = lb_v
-    ocp.constraints.ubu = ub_v
+    # indices of d in the augmented state
+    idx_d = np.array([nw, nw+1, nw+2])  # adjust if d is elsewhere
 
-    ocp.constraints.x0 = w0
+    # set hard bounds on d
+    ocp.constraints.idxbx = idx_d
+    ocp.constraints.lbx = lb_d  # lower bound
+    ocp.constraints.ubx = ub_d  # upper bound
+
+    ocp.constraints.x0 = Z0
+
 
 
     # solver options
@@ -114,27 +122,25 @@ def create_ocp_solver_description() -> AcadosOcp:
      # set prediction horizon
     ocp.solver_options.tf = T_horizon
 
-    return ocp
+    return ocp 
 
 
 
 
 def solve_single_ocp():
 
-    t0 = 0.0
-
     ocp = create_ocp_solver_description()
     acados_ocp_solver = AcadosOcpSolver(ocp, json_file = 'acados_ocp_' + ocp.model.name + '.json')
 
-    nw = ocp.model.x.size()[0]
+    nz = ocp.model.x.size()[0]
     nv = ocp.model.u.size()[0]
-    ny = nw + nv
-    simW = np.ndarray((N_horizon+1, nw))
+    ny = nz + nv 
+    simZ = np.ndarray((N_horizon+1, nz))
     simV = np.ndarray((N_horizon, nv))
       
     for k in range(N_horizon):
         acados_ocp_solver.set(k, "yref", reference_state(t0 + k*Ts, ny))
-    acados_ocp_solver.set(N_horizon, "yref", reference_state(t0 + T_horizon, nw))  # only states at terminal
+    acados_ocp_solver.set(N_horizon, "yref", reference_state(t0 + T_horizon, nz))  # only states at terminal
 
     start_time = time.time()
     status = acados_ocp_solver.solve()
@@ -147,14 +153,13 @@ def solve_single_ocp():
 
     # get solution
     for i in range(N_horizon):
-        simW[i,:] = acados_ocp_solver.get(i, "x")
+        simZ[i,:] = acados_ocp_solver.get(i, "x")
         simV[i,:] = acados_ocp_solver.get(i, "u")
-    simW[N_horizon,:] = acados_ocp_solver.get(N_horizon, "x")
+    simZ[N_horizon,:] = acados_ocp_solver.get(N_horizon, "x")
 
-    plot_3d_trajectory(np.linspace(0, T_horizon, N_horizon+1),simW)
-
+    plot_3d_trajectory(np.linspace(0, T_horizon, N_horizon+1),simZ)
+     
     print(solver_time)
-
 
 
 def closed_loop_simulation():
@@ -165,38 +170,39 @@ def closed_loop_simulation():
 
       # create an integrator with the same settings as used in the OCP solver.
     acados_integrator = AcadosSimSolver(ocp, json_file = 'acados_ocp_' + ocp.model.name + '.json')
-   
+
     Nsim = 400
 
-    nw = ocp.model.x.size()[0]
+    nz = ocp.model.x.size()[0]
     nv = ocp.model.u.size()[0]
-    ny = nw + nv
-    simW = np.ndarray((Nsim+1, nw))
+    ny = nz + nv
+    simZ = np.ndarray((Nsim+1, nz))
     simV = np.ndarray((Nsim, nv))
-    wcurrent = w0
+    zcurrent = Z0
 
-    simW[0,:] = wcurrent
+    simZ[0,:] = zcurrent
     t0 = 0.0
     t = [t0]
     # closed loop
     for i in range(Nsim):
 
         # set initial state constraint
-        acados_ocp_solver.set(0, "lbx", wcurrent)
-        acados_ocp_solver.set(0, "ubx", wcurrent)
+        acados_ocp_solver.set(0, "lbx", zcurrent)
+        acados_ocp_solver.set(0, "ubx", zcurrent)
 
         # set reference trajectory 
 
         for k in range(N_horizon):
-           
-            acados_ocp_solver.set(k, "yref", reference_state(t0 + k*Ts, ny) )
-        acados_ocp_solver.set(N_horizon, "yref", reference_state(t0 + N_horizon*Ts, nw))  # only states at terminal
+
+            acados_ocp_solver.set(k, "yref", reference_state(t0 + k*Ts, ny))
+
+        acados_ocp_solver.set(N_horizon, "yref", reference_state(t0 + N_horizon*Ts, nz))  # only states at terminal
 
        
         
         # initialize solver
         for stage in range(N_horizon+1):
-            acados_ocp_solver.set(stage, 'x', wcurrent)
+            acados_ocp_solver.set(stage, 'x', zcurrent)
 
         #for stage in range(N_horizon):
             #acados_ocp_solver.set(stage, 'u', np.array([1.0, 0.05 , 0.05, 0.05]))
@@ -208,11 +214,11 @@ def closed_loop_simulation():
             acados_ocp_solver.print_statistics()
 
         simV[i,:] = acados_ocp_solver.get(0, "u")
-        v0= simV[i,:]
-        # simulate system
-     
+
+        v0 = simV[i,:]
         
-        acados_integrator.set("x", wcurrent)
+        # simulate system
+        acados_integrator.set("x", zcurrent)
         acados_integrator.set("u", v0)
 
         status = acados_integrator.solve()
@@ -221,8 +227,8 @@ def closed_loop_simulation():
             raise Exception(f'acados integrator returned status {status} in closed loop instance {i}')
 
         # update state
-        wcurrent = acados_integrator.get("x")
-        simW[i+1,:] = wcurrent
+        zcurrent = acados_integrator.get("x")
+        simZ[i+1,:] = zcurrent
 
         t0 = t0  +  Ts
 
@@ -234,7 +240,7 @@ def closed_loop_simulation():
 
 
     # plot results
-    plot_3d_trajectory(t, simW)
-    plot_xyz_subplots(t, simW)
+    plot_3d_trajectory(t, simZ)
+    plot_xyz_subplots(t, simZ)
 
 closed_loop_simulation()

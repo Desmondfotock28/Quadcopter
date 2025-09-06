@@ -50,10 +50,10 @@ extern "C" {
 #endif
 
 static const casadi_int casadi_s0[3] = {17, 1, 1};
-static const casadi_int casadi_s1[3] = {4, 1, 1};
+static const casadi_int casadi_s1[3] = {7, 1, 1};
 static const casadi_int casadi_s2[3] = {0, 1, 1};
 
-/* FBL_augmented_Quadcopter_ode_expl_ode_fun:(i0[17],i1[4],i2[0])->(o0[17]) */
+/* FBL_augmented_Quadcopter_ode_expl_ode_fun:(i0[17],i1[7],i2[0])->(o0[17]) */
 static int casadi_f0(const casadi_real** arg, casadi_real** res, casadi_int* iw, casadi_real* w, int mem) {
   casadi_real a0, a1;
   a0=arg[0]? arg[0][1] : 0;
@@ -90,9 +90,11 @@ static int casadi_f0(const casadi_real** arg, casadi_real** res, casadi_int* iw,
   if (res[0]!=0) res[0][12]=a0;
   a0=arg[1]? arg[1][3] : 0;
   if (res[0]!=0) res[0][13]=a0;
-  a0=0.;
+  a0=arg[1]? arg[1][4] : 0;
   if (res[0]!=0) res[0][14]=a0;
+  a0=arg[1]? arg[1][5] : 0;
   if (res[0]!=0) res[0][15]=a0;
+  a0=arg[1]? arg[1][6] : 0;
   if (res[0]!=0) res[0][16]=a0;
   return 0;
 }
