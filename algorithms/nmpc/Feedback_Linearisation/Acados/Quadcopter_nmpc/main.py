@@ -62,8 +62,8 @@ def create_ocp_solver_description() -> AcadosOcp:
     # NOTE: This leads to additional (exact) hessian contributions when using GAUSS_NEWTON hessian.
     ocp.cost.cost_type = 'EXTERNAL'
     ocp.cost.cost_type_e = 'EXTERNAL'
-    ocp.model.cost_expr_ext_cost = (model.x- model.p).T @ Q_mat @ (model.x - model.p) + (model.u - umax).T @ R_mat @ (model.u - umax)
-    ocp.model.cost_expr_ext_cost_e = (model.x - model.p).T @ Q_mat @ (model.x - model.p)
+    ocp.model.cost_expr_ext_cost = 0.5*((model.x- model.p).T @ Q_mat @ (model.x - model.p) + (model.u - umax).T @ R_mat @ (model.u - umax))
+    ocp.model.cost_expr_ext_cost_e = 40*((model.x - model.p).T @ Q_mat @ (model.x - model.p))
     
 
      # constraints: set bounds on u idxbu
@@ -162,7 +162,7 @@ def closed_loop_simulation():
 
         for k in range(N_horizon):
            
-            acados_ocp_solver.set(k, "P", reference_trajectory(t0 + k*Ts) )
+            acados_ocp_solver.set(k, "p", reference_trajectory(t0 + k*Ts) )
         acados_ocp_solver.set(N_horizon, "p", reference_trajectory(t0 + N_horizon*Ts))  # only states at terminal
 
        
