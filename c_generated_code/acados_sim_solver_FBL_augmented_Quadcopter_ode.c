@@ -73,7 +73,7 @@ int FBL_augmented_Quadcopter_ode_acados_sim_create(FBL_augmented_Quadcopter_ode_
     const int np = FBL_AUGMENTED_QUADCOPTER_ODE_NP;
     bool tmp_bool;
 
-    double Tsim = 0.1;
+    double Tsim = 0.3;
 
     external_function_opts ext_fun_opts;
     external_function_opts_set_to_default(&ext_fun_opts);

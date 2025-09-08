@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from casadi import *
 from control import dare
 from scipy.linalg import block_diag 
+from scipy.optimize import root , least_squares
 
 
 
@@ -104,6 +105,40 @@ def plot_xyz_subplots(t, x_pred):
 
     plt.tight_layout()
     plt.show()
+
+
+
+
+def plot_controls_subplots(u_ol, t):
+    """
+    Plot the four control inputs (propellers) on separate subplots, excluding the last time step.
+    
+    Parameters
+    ----------
+    u_ol : np.ndarray
+        Array of shape (N, 4), control inputs for 4 propellers.
+    t : np.ndarray
+        Time vector of shape (N,).
+    """
+   
+    N, nu = u_ol.shape
+    assert nu == 4, f"Expected 4 controls, got {nu}"
+    assert len(t) == N, "Length of time vector must match number of control steps"
+    
+    fig, axs = plt.subplots(4, 1, figsize=(10, 8), sharex=True)
+    
+    for i in range(4):
+        axs[i].plot(t, u_ol[:, i], label=f'Propeller {i+1}', color=f'C{i}')
+        axs[i].set_ylabel("Control input")
+        axs[i].legend()
+        axs[i].grid(True, linestyle="--", alpha=0.6)
+    
+    axs[-1].set_xlabel("Time [s]")
+    fig.suptitle("Control inputs for 4 propellers (separate subplots)", fontsize=14)
+    plt.tight_layout(rect=[0, 0, 1, 0.96])
+    plt.show()
+
+
 
 
 def build_prediction_mats(A,B,Bd,N):
@@ -207,6 +242,131 @@ def stack_reference(ref_fun, t0, Ts, N):
         wk_ref = ref_fun(t0 + k*Ts)
         Ws.append(wk_ref)
     return vertcat(*Ws)
+
+
+## helper functions to  recompute real inputs 
+
+
+# solve problem with bounds on theta 
+def solve_nonlinear_system(w, x0=None):
+    """
+    Solve the nonlinear system of 8 equations with unknowns:
+    [phi, theta, psi, phi_dot, theta_dot, psi_dot, U1, U1_dot]
+
+    Parameters:
+        w : list or array
+            Vector of constants (length 14) in the equations.
+        x0 : list or array, optional
+            Initial guess for the solver (length 8). Defaults to zeros.
+    
+    Returns:
+        sol.x : array
+            Solution vector [phi, theta, psi, phi_dot, theta_dot, psi_dot, U1, U1_dot]
+    """
+    if x0 is None:
+        x0 = np.zeros(8)
+
+    lower_bounds = [-np.pi/4, -np.pi/4, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf]
+    upper_bounds = [np.pi/4, np.pi/4, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf]
+
+    def nonlinear_system_ls(x, w):
+        phi, theta, psi, phi_dot, theta_dot, psi_dot, U1, U1_dot = x
+        return [
+            U1 * np.sin(theta) + w[2],
+            theta_dot * U1 * np.cos(theta) + U1_dot * np.sin(theta) + w[3],
+            U1 * np.sin(phi) * np.cos(theta) - w[6],
+            phi_dot * U1 * np.cos(phi) * np.cos(theta) - theta_dot * U1 * np.sin(phi) * np.sin(theta) + U1_dot * np.sin(phi) * np.cos(theta) - w[7],
+            np.cos(phi) * np.cos(theta) * U1 - 9.81 - w[10],
+            -phi_dot * U1 * np.sin(phi) * np.cos(theta) - theta_dot * U1 * np.cos(phi) * np.sin(theta) + U1_dot * np.cos(phi) * np.cos(theta) - w[11],
+            psi - w[12],
+            psi_dot - w[13]
+        ]
+
+    sol = least_squares(
+        nonlinear_system_ls,
+        x0,
+        bounds=(lower_bounds, upper_bounds),
+        args=(w,)
+    )
+
+    return sol.x
+
+
+
+def compute_alpha_beta(x):
+    m = 2.0
+    I_x = 1.25
+    I_y = 1.25
+    I_z = 2.5
+
+    # compute alpha vector
+    alpha_1 = (x[4]**2) * np.sin(x[1]) * (x[6]/m) - 2 * x[4] * np.cos(x[1]) * (x[7]/m)
+
+    alpha_2 = (-(x[3]**2 + x[4]**2) * np.sin(x[0]) * np.cos(x[1]) * (x[6]/m)
+               - 2 * x[3] * x[4] * np.cos(x[0]) * np.sin(x[1]) 
+               + 2 * (x[3] * np.cos(x[0]) * np.cos(x[1]) * x[7]/m 
+                      - x[4] * np.sin(x[0]) * np.sin(x[1]) * x[7]/m))
+
+    alpha_3 = (-(x[3]**2 + x[4]**2) * np.cos(x[0]) * np.cos(x[1]) * (x[6]/m)
+               + 2 * x[3] * x[4] * np.sin(x[0]) * np.sin(x[1]) 
+               - 2 * (x[3] * np.sin(x[0]) * np.cos(x[1]) * x[7]/m 
+                      + x[4] * np.cos(x[0]) * np.sin(x[1]) * x[7]/m))
+
+    alpha_4 = 0.0
+
+    alpha = np.array([alpha_1, alpha_2, alpha_3, alpha_4])
+
+    # compute beta matrix
+    beta_11 = -np.sin(x[1]) / m
+    beta_12 = -np.cos(x[1]) * np.sin(x[2]) * x[6] / (m * I_x)
+    beta_13 = -np.cos(x[1]) * np.cos(x[2]) * x[6] / (m * I_y)
+    beta_14 = 0.0
+
+    beta_21 = np.sin(x[0]) * np.cos(x[1]) / m
+    beta_22 = ((np.cos(x[0]) * np.cos(x[1]) * np.cos(x[2]) 
+                - np.sin(x[0]) * np.sin(x[1]) * np.sin(x[2])) 
+               * x[6] / (m * I_x))
+    beta_23 = (-(np.cos(x[0]) * np.cos(x[1]) * np.sin(x[2]) 
+                 + np.sin(x[0]) * np.sin(x[1]) * np.cos(x[2])) 
+               * x[6] / (m * I_y))
+    beta_24 = 0.0
+
+    beta_31 = np.cos(x[0]) * np.cos(x[1]) / m
+    beta_32 = (-(np.sin(x[0]) * np.cos(x[1]) * np.cos(x[2]) 
+                 + np.cos(x[0]) * np.sin(x[1]) * np.sin(x[2])) 
+               * x[6] / (m * I_x))
+    beta_33 = ((np.sin(x[0]) * np.cos(x[1]) * np.sin(x[2]) 
+                - np.cos(x[0]) * np.sin(x[1]) * np.cos(x[2])) 
+               * x[6] / (m * I_y))
+    beta_34 = 0.0
+
+    beta_41 = 0.0
+    beta_42 = 0.0
+    beta_43 = 0.0
+    beta_44 = 1.0 / I_z
+
+    beta = np.array([
+        [beta_11, beta_12, beta_13, beta_14],
+        [beta_21, beta_22, beta_23, beta_24],
+        [beta_31, beta_32, beta_33, beta_34],
+        [beta_41, beta_42, beta_43, beta_44]
+    ])
+
+    return alpha, beta
+
+
+
+def recompute_real_input(v, w):
+    # step 1: solve nonlinear equation
+    X = solve_nonlinear_system(w)
+
+    # step 2: compute alpha and beta 
+    alpha, beta = compute_alpha_beta(X)
+
+    # step 3: compute real control from control law: v = alpha + beta @ u
+    u = np.linalg.solve(beta, v - alpha)
+
+    return u
 
 
 # Continuous-time system matrices  W_dot = AW + BV
@@ -451,6 +611,8 @@ def run_open_loop_mpc(w0, v0 , solver ):
 
     return w_pred, v , vsol 
 
+
+
 v0 =  np.array([1.0, 0.05 , 0.05, 0.05])
 
 w0 = np.zeros(14)  
@@ -474,7 +636,7 @@ def run_closed_loop_mpc(w0, Ts, sim_time, solver):
     w_ol = []
     w_cl = [w0]
     mpc_i = 0
-
+    v_cl = []
     v_st_0 = np.tile(v0, (N, 1))
     d_st_0 = np.tile(d0, (N, 1)).T
     tr = np.array([0.0])
@@ -496,11 +658,15 @@ def run_closed_loop_mpc(w0, Ts, sim_time, solver):
         #construct vsol 
         vsol = zsol[:N*nv]
         V_act = np.array(vsol).reshape((N, nv))
+        v0 = V_act[0,:]
+
+        v_cl.append(v0)
+    
         dsol = zsol[N*nv:]
         # construct xsol 
         wsol = Sx@ w0 + Su @vsol + Sd@dsol
         d0 =dsol[:nd]
-        w0  = A_d @ w0  + B_d @ V_act[0,:] + Bd_dist@ d0   +  B_const_dist @ d_cons
+        w0  = A_d @ w0  + B_d @ v0 + Bd_dist@ d0   +  B_const_dist @ d_cons
         w_cl.append(w0)
         w_pred = np.array(wsol).reshape((N+1, nw))
         t0 = t0 + Ts
@@ -512,17 +678,37 @@ def run_closed_loop_mpc(w0, Ts, sim_time, solver):
         mpc_i += 1
 
     w_ol = np.array(w_ol)   
+
+    v_cl = np.array(v_cl)
     w_cl = np.array(vertcat(*w_cl)).reshape((mpc_i +1, nw))
-    return w_ol, w_cl, time_full,  t
+    return w_ol, w_cl, v_cl,  time_full,  t
 
 sim_time = 40
 
 
-w_ol, w_cl, time_full,  t = run_closed_loop_mpc(w0, Ts, sim_time, pisolver)
+w_ol, w_cl, v_cl, time_full,  t = run_closed_loop_mpc(w0, Ts, sim_time, pisolver)
 
 print(np.mean(time_full))
 
 plot_3d_trajectory(t, w_cl)
 
 plot_xyz_subplots(t, w_cl)
-        
+
+
+u_cl = []
+
+for w_, v_ in zip(w_cl, v_cl):
+
+    u = recompute_real_input(v_, w_)
+
+    u_cl.append(u)
+
+u_cl = np.array(u_cl)
+
+
+plot_controls_subplots(u_cl, t[:-1])
+
+
+
+
+
