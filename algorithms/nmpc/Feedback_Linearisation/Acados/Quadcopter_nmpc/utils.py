@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+from casadi import vertcat
 
 
 
@@ -131,3 +132,35 @@ def plot_motor_voltages(t, voltages):
     plt.legend()
     plt.tight_layout()
     plt.show()
+
+
+def reference_trajectory(t, omega=np.pi, a=0.1):
+    """
+    Generate the reference trajectory for a given time array.
+
+    Parameters:
+    - t: np.ndarray or float, time (can be a single value or an array of values)
+    - omega: float, angular frequency (default: 1.0)
+    - a: float, slope of the z-direction trajectory (default: 0.1)
+
+    Returns:
+    - xr: np.ndarray, reference x-coordinate at time t
+    - yr: np.ndarray, reference y-coordinate at time t
+    - zr: np.ndarray, reference z-coordinate at time t
+    """
+    # Compute reference trajectory
+    xr =  np.sin(omega * t/10) 
+    yr = np.cos(omega * t/10) + -1.0
+    zr = np.sin(omega * t/10) + t 
+
+    xref = np.zeros(12)
+
+    #xr = 0.5 + 0.2* np.cos(t)
+    #yr = 0.5 + 0.2*np.sin(t) 
+    #zr = 1.1 + 0.1*t
+
+    xref[0] = xr
+    xref[1] = yr
+    xref[2] = zr
+ 
+    return xref
