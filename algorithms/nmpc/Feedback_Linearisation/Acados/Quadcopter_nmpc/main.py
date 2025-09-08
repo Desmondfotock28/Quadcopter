@@ -2,7 +2,6 @@ from acados_template import AcadosOcp, AcadosOcpSolver, AcadosSimSolver
 from Quadcopter import export_Quadcopter_ode_model
 import numpy as np
 import time
-import scipy.linalg
 from utils import plot_3d_trajectory, plot_xyz_subplots,  reference_trajectory
 
 nx = 12
@@ -15,7 +14,8 @@ Ts = T_horizon /N_horizon
 # Input constraints
 lb_u = np.array([0.5, 0.5, 0.5, 0.5])
 ub_u = np.array([11, 11 , 11, 11])
-umax = 11
+
+umax = np.array([5.75, 5.75, 5.75, 5.75])
 
 nu = lb_u.shape[0]
 
@@ -63,7 +63,7 @@ def create_ocp_solver_description() -> AcadosOcp:
     ocp.cost.cost_type = 'EXTERNAL'
     ocp.cost.cost_type_e = 'EXTERNAL'
     ocp.model.cost_expr_ext_cost = 0.5*((model.x- model.p).T @ Q_mat @ (model.x - model.p) + (model.u - umax).T @ R_mat @ (model.u - umax))
-    ocp.model.cost_expr_ext_cost_e = 40*((model.x - model.p).T @ Q_mat @ (model.x - model.p))
+    ocp.model.cost_expr_ext_cost_e = (model.x - model.p).T @ Q_mat @ (model.x - model.p)
     
 
      # constraints: set bounds on u idxbu
@@ -78,12 +78,12 @@ def create_ocp_solver_description() -> AcadosOcp:
     ocp.solver_options.qp_solver = 'PARTIAL_CONDENSING_HPIPM'
     ocp.solver_options.hessian_approx = 'GAUSS_NEWTON'
     ocp.solver_options.integrator_type = 'IRK'
-    ocp.solver_options.sim_method_num_stages = 1
-    ocp.solver_options.sim_method_num_steps = 1
+    ocp.solver_options.sim_method_num_stages = 4
+    ocp.solver_options.sim_method_num_steps = 3
     ocp.solver_options.print_level = 1
-    ocp.solver_options.nlp_solver_type = 'SQP' # SQP_RTI, SQP
+    ocp.solver_options.nlp_solver_type = 'SQP_RTI' # SQP_RTI, SQP
 
-    ocp.solver_options.nlp_solver_max_iter = 100
+    ocp.solver_options.nlp_solver_max_iter =100
 
      # set prediction horizon
     ocp.solver_options.tf = T_horizon
@@ -96,6 +96,7 @@ def create_ocp_solver_description() -> AcadosOcp:
 def solve_single_ocp():
 
     t0 = 0.0
+    u0 = np.array([5.75, 5.75, 5.75, 5.75])
 
     ocp = create_ocp_solver_description()
     acados_ocp_solver = AcadosOcpSolver(ocp, json_file = 'acados_ocp_' + ocp.model.name + '.json')
@@ -104,6 +105,10 @@ def solve_single_ocp():
     nu = ocp.model.u.size()[0]
     simX = np.ndarray((N_horizon+1, nx))
     simU = np.ndarray((N_horizon, nu))
+
+     # initialize solver
+    for stage in range(N_horizon):
+        acados_ocp_solver.set(stage, 'u', u0)
       
     for k in range(N_horizon):
         acados_ocp_solver.set(k, "p", reference_trajectory(t0 + k*Ts))
@@ -129,7 +134,6 @@ def solve_single_ocp():
     print(solver_time)
 
 
-
 def closed_loop_simulation():
 
     ocp = create_ocp_solver_description()
@@ -146,6 +150,8 @@ def closed_loop_simulation():
     nu = ocp.model.u.size()[0]
     simX = np.ndarray((Nsim+1, nx))
     simU = np.ndarray((Nsim, nu))
+    
+    u0 = np.array([5.75, 5.75, 5.75, 5.75])
 
     xcurrent = X0
     simX[0,:] = xcurrent
@@ -171,8 +177,8 @@ def closed_loop_simulation():
         for stage in range(N_horizon+1):
             acados_ocp_solver.set(stage, 'x', xcurrent)
 
-        #for stage in range(N_horizon):
-            #acados_ocp_solver.set(stage, 'u', np.array([5.25, 5.25 , 5.25, 5.25]))
+        for stage in range(N_horizon):
+            acados_ocp_solver.set(stage, 'u', u0)
 
         # solve ocp
         status = acados_ocp_solver.solve()
@@ -187,7 +193,7 @@ def closed_loop_simulation():
 
         # simulate system
         acados_integrator.set("x", xcurrent)
-        acados_integrator.set("u", simU[i,:])
+        acados_integrator.set("u", u0)
 
         status = acados_integrator.solve()
 
