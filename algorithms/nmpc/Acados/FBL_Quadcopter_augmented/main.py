@@ -13,7 +13,7 @@ d0 = np.array([0.0, 0.0, 0.0])
 Z0 = np.concatenate([w0, d0])
 nz = Z0.shape[0]
 N_horizon = 10
-T_horizon = 3.0
+T_horizon = 1.0
 Ts = T_horizon /N_horizon
 t0 = 0.0
 
