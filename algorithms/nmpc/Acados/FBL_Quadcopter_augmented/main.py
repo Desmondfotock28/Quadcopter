@@ -161,7 +161,6 @@ def solve_single_ocp():
      
     print(solver_time)
 
-solve_single_ocp()
 
 def closed_loop_simulation():
 
