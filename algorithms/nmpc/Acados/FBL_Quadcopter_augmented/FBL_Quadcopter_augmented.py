@@ -5,7 +5,7 @@ from utils import get_continous_time_matrices
 
 
 
-def export_augmented_feedback_lineraise_Quadcopter_ode_model(dt = 0.1) -> AcadosModel:
+def export_augmented_feedback_lineraise_Quadcopter_ode_model() -> AcadosModel:
 
     model_name = "FBL_augmented_Quadcopter_ode"
 

@@ -162,6 +162,7 @@ def solve_single_ocp():
     print(solver_time)
 
 
+
 def closed_loop_simulation():
 
     ocp = create_ocp_solver_description()
