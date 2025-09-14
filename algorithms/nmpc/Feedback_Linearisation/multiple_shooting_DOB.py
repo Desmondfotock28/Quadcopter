@@ -203,21 +203,24 @@ def solve_nonlinear_system(w, x0=None):
         sol.x : array
             Solution vector [phi, theta, psi, phi_dot, theta_dot, psi_dot, U1, U1_dot]
     """
+    m= 2.0
     if x0 is None:
         x0 = np.zeros(8)
+    
 
-    lower_bounds = [-np.pi/4, -np.pi/4, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf]
-    upper_bounds = [np.pi/4, np.pi/4, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf]
+    lower_bounds = [-np.inf, -np.pi/4, -np.inf, -np.inf, -np.inf, -np.inf, 0.0, -np.inf]
+    upper_bounds = [np.inf, np.pi/4, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf]
 
     def nonlinear_system_ls(x, w):
         phi, theta, psi, phi_dot, theta_dot, psi_dot, U1, U1_dot = x
+     
         return [
-            U1 * np.sin(theta) + w[2],
-            theta_dot * U1 * np.cos(theta) + U1_dot * np.sin(theta) + w[3],
-            U1 * np.sin(phi) * np.cos(theta) - w[6],
-            phi_dot * U1 * np.cos(phi) * np.cos(theta) - theta_dot * U1 * np.sin(phi) * np.sin(theta) + U1_dot * np.sin(phi) * np.cos(theta) - w[7],
-            np.cos(phi) * np.cos(theta) * U1 - 9.81 - w[10],
-            -phi_dot * U1 * np.sin(phi) * np.cos(theta) - theta_dot * U1 * np.cos(phi) * np.sin(theta) + U1_dot * np.cos(phi) * np.cos(theta) - w[11],
+            (U1/m) * np.sin(theta) + w[2],
+            theta_dot * (U1/m) * np.cos(theta) + (U1_dot/m) * np.sin(theta) + w[3],
+            (U1/m) * np.sin(phi) * np.cos(theta) - w[6],
+            phi_dot * (U1/m) * np.cos(phi) * np.cos(theta) - theta_dot * (U1/m) * np.sin(phi) * np.sin(theta) + (U1_dot/m) * np.sin(phi) * np.cos(theta) - w[7],
+            np.cos(phi) * np.cos(theta) * (U1/m) - 9.81 - w[10],
+            -phi_dot * (U1/m) * np.sin(phi) * np.cos(theta) - theta_dot * (U1/m) * np.cos(phi) * np.sin(theta) + (U1_dot/m) * np.cos(phi) * np.cos(theta) - w[11],
             psi - w[12],
             psi_dot - w[13]
         ]
@@ -230,7 +233,6 @@ def solve_nonlinear_system(w, x0=None):
     )
 
     return sol.x
-
 
 
 def compute_alpha_beta(x):
@@ -297,6 +299,10 @@ def compute_alpha_beta(x):
 
 
 def recompute_real_input(v, w):
+    b = 2.5e-5  #N.s^2
+    d = 0.5e-6  #N.m.s^2
+    l = 0.25    #m
+
     # step 1: solve nonlinear equation
     X = solve_nonlinear_system(w)
 
@@ -306,8 +312,23 @@ def recompute_real_input(v, w):
     # step 3: compute real control from control law: v = alpha + beta @ u
     u = np.linalg.solve(beta, v - alpha)
 
-    return u
+   
+    # step 4: mapping matrix from omega^2 to U
+    M = np.array([
+        [b,               b,               b,               b],
+        [(np.sqrt(2)/2)*l*b, -(np.sqrt(2)/2)*l*b, -(np.sqrt(2)/2)*l*b, (np.sqrt(2)/2)*l*b],
+        [(np.sqrt(2)/2)*l*b, (np.sqrt(2)/2)*l*b, -(np.sqrt(2)/2)*l*b, -(np.sqrt(2)/2)*l*b],
+        [d,              -d,               d,              -d]
+    ])
 
+    # step 5: solve for squared rotor speeds: M * omega_sq = u
+    omega_sq = np.linalg.solve(M, u)
+
+    # make sure no negative values due to numerical issues
+    #omega_sq = np.maximum(omega_sq, 0.0)
+
+
+    return u, omega_sq
 
 
 
@@ -452,6 +473,7 @@ terminal_cost_fcn = Function("T_cost", [w], [terminal_cost])
 lb_v = np.array([-1.0, -0.05, -0.05, -0.05])    #need to check the bound for the transfrom system
 ub_v = np.array([1.0, 0.05 , 0.05, 0.05])
 
+vmax = 1.0
 Opt_Vars = vertcat(
     reshape(W, -1, 1),
     reshape(V, -1, 1)
@@ -462,7 +484,7 @@ def objective_cost():
     J = 0.0
     for i in range(N):
         dw = W[:, i+1]-reference_trajectory(P[nd+nw:] + i*Ts)
-        dv = V[:, i]      
+        dv = V[:, i]- vmax      
         J += stage_cost_fcn(dw, dv)
     
     J += terminal_cost_fcn((W[:, -1]-reference_trajectory(P[nd + nw:] + N*Ts)))      #+  bilin(Qd ,D[:, -1]) 
@@ -564,11 +586,11 @@ w0 = np.zeros(14)
 
 Tr =np.array([0.0])
 
-w_pred, v_ol, vsol = run_open_loop_mpc(w0, Tr, v0 , pisolver)
+#w_pred, v_ol, vsol = run_open_loop_mpc(w0, Tr, v0 , pisolver)
 
-t =  np.linspace(0, N*Ts, N+1)
+#t =  np.linspace(0, N*Ts, N+1)
 
-plot_3d_trajectory(t, w_pred)
+#plot_3d_trajectory(t, w_pred)
 
 
 def run_closed_loop_mpc(w0, Tr, Ts, sim_time, solver):
@@ -719,17 +741,21 @@ plot_disturbance_x(t[:-1], d_predicted.flatten())
 
 
 u_cl = []
+omega_square_cl = []
 
 for w_, v_ in zip(w_ol, v_cl):
 
-    u = recompute_real_input(v_, w_)
+    u, omega_square = recompute_real_input(v_, w_)
 
     u_cl.append(u)
 
+    omega_square_cl.append(omega_square)
+
 u_cl = np.array(u_cl)
+omega_square_cl = np.array(omega_square_cl)
 
 
-plot_controls_subplots(u_cl, t[:-1])
+plot_controls_subplots(v_cl, t[:-1])
 
 
 

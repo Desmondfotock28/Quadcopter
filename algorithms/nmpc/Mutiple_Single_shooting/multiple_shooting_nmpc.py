@@ -532,5 +532,7 @@ plot_xyz_subplots(t, x_ol)
 
 min_len = min(len(t), u_cl.shape[0])
 t = t[:min_len]
+
 voltages = u_cl[:min_len, :]
+
 plot_motor_voltages(t, voltages)
