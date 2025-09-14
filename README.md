@@ -64,14 +64,18 @@ Comprehensive documentation available in the [project wiki](https://github.com/D
 ### Running NMPC Simulations (Development)
 ```bash
 # Single shooting NMPC
-python algorithms/nmpc/single_shooting_nmpc.py
+python algorithms/nmpc/Multiple_Single shooting/single_shooting_nmpc.py
 
 # Multiple shooting NMPC  
-python algorithms/nmpc/multiple_shooting_nmpc.py
+python algorithms/nmpc/Multiple_Single shooting/multiple_shooting_nmpc.py
 
 # Active subspace methods
 python algorithms/nmpc/active_subspace/single_shooting_active_subspace.py
+
+# Feedback Linearisation NMPC
+python algorithms/nmpc/Feedback_Linearisation/multiple_shooting_DOB.py
 ```
+
 
 ### Raspberry Pi Deployment (ROS2)
 
