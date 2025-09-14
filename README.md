@@ -47,7 +47,10 @@ Comprehensive documentation available in the [project wiki](https://github.com/D
 ```
 ├── algorithms/             # Algorithm development (not for RPi deployment)
 │   └── nmpc/               # NMPC implementations and testing
-│       └── active_subspace/    # Active subspace optimization methods
+│       └── Feedback linearisation/    # Feedback linearisation methods
+        └── Multiple/Single shooting / # Mutiple/Single shooting methods
+        └── active_subspace/    # Active subspace optimization method
+        └── Acados/        # Implementation with Acados                  
 ├── src/                    # ROS packages for deployment
 │   └── drone_control/      # ROS2 control nodes with C++ implementation
 ├── hardware/               # CAD models and 3D designs
