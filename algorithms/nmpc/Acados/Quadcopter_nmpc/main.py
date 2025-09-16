@@ -81,7 +81,7 @@ def create_ocp_solver_description() -> AcadosOcp:
     ocp.solver_options.sim_method_num_stages = 4
     ocp.solver_options.sim_method_num_steps = 3
     ocp.solver_options.print_level = 1
-    ocp.solver_options.nlp_solver_type = 'SQP_RTI' # SQP_RTI, SQP
+    ocp.solver_options.nlp_solver_type = 'SQP' # SQP_RTI, SQP
 
     ocp.solver_options.nlp_solver_max_iter =100
 
@@ -133,6 +133,7 @@ def solve_single_ocp():
 
     print(solver_time)
 
+#solve_single_ocp()
 
 def closed_loop_simulation():
 
@@ -157,6 +158,16 @@ def closed_loop_simulation():
     simX[0,:] = xcurrent
     t0 = 0.0
     t = [t0]
+    solve_time_total =[]
+
+    # initialize solver
+    
+    for stage in range(N_horizon):
+            acados_ocp_solver.set(stage, 'u', u0)
+
+    for stage in range(N_horizon+1):
+            acados_ocp_solver.set(stage, 'x', xcurrent)
+
     # closed loop
     for i in range(Nsim):
 
@@ -172,17 +183,11 @@ def closed_loop_simulation():
         acados_ocp_solver.set(N_horizon, "p", reference_trajectory(t0 + N_horizon*Ts))  # only states at terminal
 
        
-        
-        # initialize solver
-        for stage in range(N_horizon+1):
-            acados_ocp_solver.set(stage, 'x', xcurrent)
-
-        for stage in range(N_horizon):
-            acados_ocp_solver.set(stage, 'u', u0)
-
         # solve ocp
+        start_time = time.time()
         status = acados_ocp_solver.solve()
-
+        solver_time = time.time()-start_time
+        solve_time_total.append(solver_time)
         if status not in [0, 2]:
             acados_ocp_solver.print_statistics()
             raise Exception(f'acados acados_ocp_solver returned status {status} in closed loop instance {i} with {xcurrent=}')
@@ -207,13 +212,12 @@ def closed_loop_simulation():
 
         t.append(t0)
 
-    
     t = np.array(t)
 
-
-
     # plot results
+    solve_time_total = np.array(solve_time_total)
     plot_3d_trajectory(t, simX)
     plot_xyz_subplots(t, simX)
+    print(np.mean(solve_time_total))
 
 closed_loop_simulation()
