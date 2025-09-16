@@ -3,7 +3,7 @@ import time
 import matplotlib.pyplot as plt
 from casadi import *
 from scipy.linalg import block_diag
-from scipy.optimize import  least_squares
+from scipy.optimize import  least_squares, root
 
 
 #Feedback Linearisation for Quadcopter model with constant disturbance
@@ -186,106 +186,111 @@ def get_disturbance(t):
     dwz = 0.0
     return np.array([dwx, dwy, dwz])
 
-
 # solve problem with bounds on theta 
-def solve_nonlinear_system(w, x0=None):
-    """
-    Solve the nonlinear system of 8 equations with unknowns:
-    [phi, theta, psi, phi_dot, theta_dot, psi_dot, U1, U1_dot]
+def solve_nonlinear_system(w, x0):
+    m = 2.0
+    g= 9.81
+    def nonlinear_system_eqs(x):
 
-    Parameters:
-        w : list or array
-            Vector of constants (length 14) in the equations.
-        x0 : list or array, optional
-            Initial guess for the solver (length 8). Defaults to zeros.
+        phi, theta, psi, phi_dot, theta_dot, psi_dot, u1, u1_dot = x
+
+        r1 = (u1/m) * (np.cos(psi)*np.sin(theta)*np.cos(phi)+ (np.sin(psi) * np.sin(phi))) - w[2]
+
+        r2 = (u1_dot/m) * (np.cos(psi)*np.sin(theta)*np.cos(phi) + np.sin(psi)*np.sin(phi)) \
+         + (u1/m) * ( 
+             (-np.sin(psi)*psi_dot) * np.sin(theta) * np.cos(phi) 
+             + np.cos(psi) * np.cos(theta) * theta_dot * np.cos(phi) 
+             + np.cos(psi) * np.sin(theta) * (-np.sin(phi)*phi_dot) 
+             + (np.cos(psi)*psi_dot) * np.sin(phi) 
+             + np.sin(psi) * np.cos(phi) * phi_dot 
+         ) - w[3]
+        
+        r3 = (u1/m)*(np.sin(psi)*np.sin(theta)*np.cos(phi)-np.cos(psi)*np.sin(phi)) + w[6]
+
+        r4 = (u1_dot/m) * (np.sin(psi)*np.sin(theta)*np.cos(phi) - np.cos(psi)*np.sin(phi)) \
+         + (u1/m) * (
+             (np.cos(psi)*psi_dot)*np.sin(theta)*np.cos(phi) 
+             + np.sin(psi)*np.cos(theta)*theta_dot*np.cos(phi)
+             - np.sin(psi)*np.sin(theta)*np.sin(phi)*phi_dot
+             + np.sin(psi)*psi_dot*np.sin(phi)
+             - np.cos(psi)*np.cos(phi)*phi_dot
+         )-w[7]
+
+        r5 = (u1/m)*np.cos(phi)*np.cos(theta)-g-w[10]
+
+        r6 = -phi_dot * (u1/m) * np.sin(phi) * np.cos(theta) - theta_dot * (u1/m) * np.cos(phi) * np.sin(theta) + (u1_dot/m) * np.cos(phi) * np.cos(theta) - w[11]
+        
+        r7 =  psi - w[12]
+
+        r8 = psi_dot - w[13]
+
+        return [r1, r2, r3, r4, r5, r6, r7, r8]
     
-    Returns:
-        sol.x : array
-            Solution vector [phi, theta, psi, phi_dot, theta_dot, psi_dot, U1, U1_dot]
-    """
-    m= 2.0
-    if x0 is None:
-        x0 = np.zeros(8)
-    
-
-    lower_bounds = [-np.inf, -np.pi/4, -np.inf, -np.inf, -np.inf, -np.inf, 0.0, -np.inf]
-    upper_bounds = [np.inf, np.pi/4, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf]
-
-    def nonlinear_system_ls(x, w):
-        phi, theta, psi, phi_dot, theta_dot, psi_dot, U1, U1_dot = x
-     
-        return [
-            (U1/m) * np.sin(theta) + w[2],
-            theta_dot * (U1/m) * np.cos(theta) + (U1_dot/m) * np.sin(theta) + w[3],
-            (U1/m) * np.sin(phi) * np.cos(theta) - w[6],
-            phi_dot * (U1/m) * np.cos(phi) * np.cos(theta) - theta_dot * (U1/m) * np.sin(phi) * np.sin(theta) + (U1_dot/m) * np.sin(phi) * np.cos(theta) - w[7],
-            np.cos(phi) * np.cos(theta) * (U1/m) - 9.81 - w[10],
-            -phi_dot * (U1/m) * np.sin(phi) * np.cos(theta) - theta_dot * (U1/m) * np.cos(phi) * np.sin(theta) + (U1_dot/m) * np.cos(phi) * np.cos(theta) - w[11],
-            psi - w[12],
-            psi_dot - w[13]
-        ]
-
-    sol = least_squares(
-        nonlinear_system_ls,
-        x0,
-        bounds=(lower_bounds, upper_bounds),
-        args=(w,)
-    )
-
+    sol = root(nonlinear_system_eqs, x0, method='hybr')  # or 'lm'
     return sol.x
 
 
 def compute_alpha_beta(x):
+    #Solution x = [x0=phi, x1=theta, x2=psi, x3=phi_dot, x4=theta_dot, x5=psi_dot, x6=U1, x7=U1_dot]
     m = 2.0
     I_x = 1.25
     I_y = 1.25
     I_z = 2.5
 
     # compute alpha vector
-    alpha_1 = (x[4]**2) * np.sin(x[1]) * (x[6]/m) - 2 * x[4] * np.cos(x[1]) * (x[7]/m)
+    alpha_1 = (2*x[7]/m)*(np.cos(x[1])*np.cos(x[0])*x[4] - np.sin(x[1])*np.sin(x[0])*x[3]) \
+            + (x[6]/m)*(
+           -np.sin(x[1])*np.cos(x[0])*(x[4]**2)
+           -2*np.cos(x[1])*np.sin(x[0])*x[4]*x[3]
+           -np.sin(x[1])*np.cos(x[0])*(x[3]**2)
+       )       #change alpha_1 done
 
-    alpha_2 = (-(x[3]**2 + x[4]**2) * np.sin(x[0]) * np.cos(x[1]) * (x[6]/m)
-               - 2 * x[3] * x[4] * np.cos(x[0]) * np.sin(x[1]) 
-               + 2 * (x[3] * np.cos(x[0]) * np.cos(x[1]) * x[7]/m 
-                      - x[4] * np.sin(x[0]) * np.sin(x[1]) * x[7]/m))
+
+    alpha_2 = (x[6]/m) * np.sin(x[0]) * (x[3]**2) -2*np.cos(x[0])*(x[3]/m)* x[7]    #change alpha_2 done
 
     alpha_3 = (-(x[3]**2 + x[4]**2) * np.cos(x[0]) * np.cos(x[1]) * (x[6]/m)
-               + 2 * x[3] * x[4] * np.sin(x[0]) * np.sin(x[1]) 
+               + 2 * x[3] * x[4] * np.sin(x[0]) * np.sin(x[1])* (x[6]/m) 
                - 2 * (x[3] * np.sin(x[0]) * np.cos(x[1]) * x[7]/m 
-                      + x[4] * np.cos(x[0]) * np.sin(x[1]) * x[7]/m))
+                      + x[4] * np.cos(x[0]) * np.sin(x[1]) * x[7]/m))              #remain same 
 
     alpha_4 = 0.0
 
     alpha = np.array([alpha_1, alpha_2, alpha_3, alpha_4])
 
     # compute beta matrix
-    beta_11 = -np.sin(x[1]) / m
-    beta_12 = -np.cos(x[1]) * np.sin(x[2]) * x[6] / (m * I_x)
-    beta_13 = -np.cos(x[1]) * np.cos(x[2]) * x[6] / (m * I_y)
-    beta_14 = 0.0
+    beta_11 = np.sin(x[1])*np.cos(x[0])/m      # change beta11 done     
 
-    beta_21 = np.sin(x[0]) * np.cos(x[1]) / m
-    beta_22 = ((np.cos(x[0]) * np.cos(x[1]) * np.cos(x[2]) 
-                - np.sin(x[0]) * np.sin(x[1]) * np.sin(x[2])) 
-               * x[6] / (m * I_x))
-    beta_23 = (-(np.cos(x[0]) * np.cos(x[1]) * np.sin(x[2]) 
-                 + np.sin(x[0]) * np.sin(x[1]) * np.cos(x[2])) 
-               * x[6] / (m * I_y))
-    beta_24 = 0.0
+    beta_12 = -(x[6]*np.sin(x[1])*np.sin(x[0]))/(m*I_x)   # change beta12 done 
 
-    beta_31 = np.cos(x[0]) * np.cos(x[1]) / m
+    beta_13 = (x[6]/m)*( (np.cos(x[1])*np.cos(x[0])**2)/I_x - (np.sin(x[1])*np.sin(x[0])**2*np.tan(x[1]))/I_y) # change beta13 done
+
+    beta_14 = (x[6]/m)*(-(np.cos(x[1])*np.cos(x[0])*np.sin(x[1]))/I_y - (np.sin(x[1])*np.sin(x[0])*np.cos(x[0])*np.tan(x[1]))/I_z) # change beta14 done
+
+    beta_21 = -np.sin(x[0])/m   # change beta21 done
+
+    beta_22 = -x[6]*np.cos(x[0])/(m*I_x)         # change beta22 done
+
+    beta_23 = -x[6]*np.cos(x[0])*np.sin(x[0])*np.tan(x[1])/(m*I_y)    # change beta23 done
+    
+    beta_24 = -x[6]*np.cos(x[0])**2*np.tan(x[1])/(m*I_z)           # change beta24 done
+
+
+    beta_31 = np.cos(x[0]) * np.cos(x[1]) / m            
+
     beta_32 = (-(np.sin(x[0]) * np.cos(x[1]) * np.cos(x[2]) 
                  + np.cos(x[0]) * np.sin(x[1]) * np.sin(x[2])) 
                * x[6] / (m * I_x))
+    
     beta_33 = ((np.sin(x[0]) * np.cos(x[1]) * np.sin(x[2]) 
                 - np.cos(x[0]) * np.sin(x[1]) * np.cos(x[2])) 
                * x[6] / (m * I_y))
+    
     beta_34 = 0.0
 
     beta_41 = 0.0
     beta_42 = 0.0
-    beta_43 = 0.0
-    beta_44 = 1.0 / I_z
+    beta_43 = (sin(x[0])/cos(x[1]))*(1/I_y)
+    beta_44 = (cos(x[0])/cos(x[1]))*(1/I_z)
 
     beta = np.array([
         [beta_11, beta_12, beta_13, beta_14],
@@ -297,38 +302,30 @@ def compute_alpha_beta(x):
     return alpha, beta
 
 
+def solve_controls(v, alpha, beta):
+    """
+    Solve for [U1_ddot, U2, U3, U4].
 
-def recompute_real_input(v, w):
-    b = 2.5e-5  #N.s^2
-    d = 0.5e-6  #N.m.s^2
-    l = 0.25    #m
+    Parameters
+    ----------
+    v : array_like, shape (4,)
+        The vector [v1, v2, v3, v4].
+    alpha : array_like, shape (4,)
+        The vector [alpha1(X), alpha2(X), alpha3(X), alpha4(X)].
+    beta : array_like, shape (4,4)
+        The beta matrix.
 
-    # step 1: solve nonlinear equation
-    X = solve_nonlinear_system(w)
+    Returns
+    -------
+    u : ndarray, shape (4,)
+        The solution [U1_ddot, U2, U3, U4].
+    """
+    v = np.asarray(v).reshape(4, 1)
+    alpha = np.asarray(alpha).reshape(4, 1)
+    beta = np.asarray(beta).reshape(4, 4)
 
-    # step 2: compute alpha and beta 
-    alpha, beta = compute_alpha_beta(X)
-
-    # step 3: compute real control from control law: v = alpha + beta @ u
     u = np.linalg.solve(beta, v - alpha)
-
-   
-    # step 4: mapping matrix from omega^2 to U
-    M = np.array([
-        [b,               b,               b,               b],
-        [(np.sqrt(2)/2)*l*b, -(np.sqrt(2)/2)*l*b, -(np.sqrt(2)/2)*l*b, (np.sqrt(2)/2)*l*b],
-        [(np.sqrt(2)/2)*l*b, (np.sqrt(2)/2)*l*b, -(np.sqrt(2)/2)*l*b, -(np.sqrt(2)/2)*l*b],
-        [d,              -d,               d,              -d]
-    ])
-
-    # step 5: solve for squared rotor speeds: M * omega_sq = u
-    omega_sq = np.linalg.solve(M, u)
-
-    # make sure no negative values due to numerical issues
-    #omega_sq = np.maximum(omega_sq, 0.0)
-
-
-    return u, omega_sq
+    return u.flatten()
 
 
 
@@ -407,7 +404,7 @@ L_f = Bd_cons.T
 # Define the CasADi system function using discrete-time matrices
 w = SX.sym("w", nw)
 
-v = SX.sym("v", nv)
+v = SX.sym("v", nv) 
 
 d_c = SX.sym('d', nd)   #disturbance 
 
@@ -711,6 +708,35 @@ plot_3d_trajectory(t, w_ol)
 plot_xyz_subplots(t, w_ol)
 
 
+#test
+m = 2.0
+# Solve and store solutions
+solutions = []
+x0 = np.array([0, 0, 0, 0, 0, 0, np.sqrt(m*9.81), 0.0])
+
+for w in w_ol:
+    sol = solve_nonlinear_system(w, x0)
+    solutions.append(sol)
+
+solutions = np.array(solutions)  # shape (num_w, 8)
+
+# Plot each component in its own subplot
+labels = ['phi', 'theta', 'psi', 'phi_dot', 'theta_dot', 'psi_dot', 'u1', 'u1_dot']
+fig, axes = plt.subplots(4, 2, figsize=(12, 10))
+axes = axes.flatten()
+
+for i in range(8):
+    axes[i].plot(solutions[:, i])
+    axes[i].set_title(labels[i])
+    axes[i].set_ylabel('Value')
+    axes[i].grid(True)
+
+plt.tight_layout()
+plt.show()
+
+
+
+
 
 def plot_disturbance_x(t, d):
     """
@@ -743,19 +769,21 @@ plot_disturbance_x(t[:-1], d_predicted.flatten())
 u_cl = []
 omega_square_cl = []
 
+x0 = np.array([0, 0, 0, 0, 0, 0, np.sqrt(m*9.81), 0.0])
+
 for w_, v_ in zip(w_ol, v_cl):
 
-    u, omega_square = recompute_real_input(v_, w_)
+    X = solve_nonlinear_system(w_, x0)
+
+    alpha, beta = compute_alpha_beta(X)
+  
+    u = solve_controls(v_, alpha, beta)
 
     u_cl.append(u)
 
-    omega_square_cl.append(omega_square)
-
 u_cl = np.array(u_cl)
-omega_square_cl = np.array(omega_square_cl)
 
-
-plot_controls_subplots(v_cl, t[:-1])
+plot_controls_subplots(u_cl, t[:-1])
 
 
 

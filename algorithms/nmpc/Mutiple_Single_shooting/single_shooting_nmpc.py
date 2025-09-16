@@ -287,11 +287,11 @@ def compute_block_matrix( Q_base, R_base, N):
     return  Q_d ,  R_d
 
 #Controller frequency and Prediction horizon
-Ts = 0.3    #sampling time in [s]
+Ts = 0.1    #sampling time in [s]
 
 N =  10      #prediction horizon
 
-tf= 3
+tf= 1
 
 nx= 12       #state dimension 
 
@@ -506,8 +506,8 @@ def run_closed_loop_mpc(x0, Tr, Ts, sim_time, solver):
     return x_ol, u_cl, t, cost_n, U_open_loop
 
 
-Ts = 0.3
-sim_time = 100
+Ts = 0.1
+sim_time = 40
 
 x_ol, u_cl, t, cost_nn, U_open_loop  = run_closed_loop_mpc(x0, Tr, Ts, sim_time, pisolver)
 

@@ -418,6 +418,7 @@ v0 =  np.array([1.0, 0.05 , 0.05, 0.05])
 w0 = np.zeros(14)  
 
 Tr =np.array([0.0])
+
 w_pred, v_ol, vsol = run_open_loop_mpc(w0, Tr, v0 , pisolver)
 
 t =  np.linspace(0, N*Ts, N+1)
@@ -530,7 +531,6 @@ def plot_disturbance_x(t, d):
     plt.grid(True)
     plt.legend()
     plt.show()
-
 
 plot_disturbance_x(t[:-1], d_actual)
 plot_disturbance_x(t[:-1], d_predicted.flatten())
