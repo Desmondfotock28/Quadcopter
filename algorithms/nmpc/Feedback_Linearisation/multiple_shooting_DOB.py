@@ -96,6 +96,39 @@ def plot_xyz_subplots(t, x_pred):
     plt.tight_layout()
     plt.show()
 
+def plot_motor_voltages(t, voltages):
+    """
+    Plot voltage drawn by each motor over time.
+
+    Parameters:
+    t : array-like
+        Time vector (length N)
+    voltages : numpy.ndarray
+        Voltage values of shape (N, 4), each column corresponds to a motor [v1, v2, v3, v4]
+    
+    Returns:
+    None
+    """
+    t = np.array(t)
+    voltages = np.array(voltages)
+
+    plt.figure(figsize=(10, 6))
+    
+    # Plot each motor voltage
+    plt.plot(t, voltages[:, 0], label='Motor 1', linestyle='-', marker='o', markersize=4)
+    plt.plot(t, voltages[:, 1], label='Motor 2', linestyle='--', marker='s', markersize=4)
+    plt.plot(t, voltages[:, 2], label='Motor 3', linestyle='-.', marker='^', markersize=4)
+    plt.plot(t, voltages[:, 3], label='Motor 4', linestyle=':', marker='d', markersize=4)
+    
+    plt.xlabel('Time [s]')
+    plt.ylabel('Voltage [V]')
+    plt.title('Motor Voltages over Time')
+    plt.grid(True)
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
+
+
 def plot_controls_subplots(u_ol, t):
     """
     Plot the four control inputs (propellers) on separate subplots, excluding the last time step.
@@ -302,6 +335,7 @@ def compute_alpha_beta(x):
     return alpha, beta
 
 
+
 def solve_controls(v, alpha, beta):
     """
     Solve for [U1_ddot, U2, U3, U4].
@@ -327,7 +361,33 @@ def solve_controls(v, alpha, beta):
     u = np.linalg.solve(beta, v - alpha)
     return u.flatten()
 
+def motor_speed(u):
+    b = 2.5e-5  #N.s^2
+    d = 0.5e-6  #N.m.s^2
+    l = 0.25    #m
+    # mapping matrix from omega^2 to U
+    M = np.array([
+        [b,               b,               b,               b],
+        [(np.sqrt(2)/2)*l*b, -(np.sqrt(2)/2)*l*b, -(np.sqrt(2)/2)*l*b, (np.sqrt(2)/2)*l*b],
+        [(np.sqrt(2)/2)*l*b, (np.sqrt(2)/2)*l*b, -(np.sqrt(2)/2)*l*b, -(np.sqrt(2)/2)*l*b],
+        [d,              -d,               d,              -d]
+    ])
 
+      #  solve for squared rotor speeds: M * omega_sq = u
+    omega_sq = np.linalg.solve(M, u)
+
+      # make sure no negative values due to numerical issues
+    omega_sq = np.maximum(omega_sq, 0.0)
+
+    return omega_sq
+
+def motor_voltages(omega_sq):
+
+    cm  = 10000      #v^-2s^-2
+
+    voltage = np.sqrt(omega_sq/cm)
+
+    return voltage
 
 # Continuous-time system matrices  W_dot = AW + BV
 # important note  x = w1 , y=w5 , z=w9, psi = w13
@@ -768,6 +828,7 @@ plot_disturbance_x(t[:-1], d_predicted.flatten())
 
 u_cl = []
 omega_square_cl = []
+voltage_cl =[]
 
 x0 = np.array([0, 0, 0, 0, 0, 0, np.sqrt(m*9.81), 0.0])
 
@@ -778,12 +839,26 @@ for w_, v_ in zip(w_ol, v_cl):
     alpha, beta = compute_alpha_beta(X)
   
     u = solve_controls(v_, alpha, beta)
+    u[0] = X[6]
+    omega_sq = motor_speed(u)
+
+    voltage =motor_voltages(omega_sq)
 
     u_cl.append(u)
 
+    voltage_cl.append(voltage)
+
+    omega_square_cl.append(omega_sq)
+
 u_cl = np.array(u_cl)
 
-plot_controls_subplots(u_cl, t[:-1])
+voltage_cl = np.array(voltage_cl)
+
+omega_square_cl = np.array(omega_square_cl)
+
+plot_motor_voltages(t[:-1], voltage_cl)
+
+#plot_controls_subplots(voltage_cl, t[:-1])
 
 
 
