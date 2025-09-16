@@ -136,6 +136,42 @@ def plot_motor_voltages(t, voltages):
     plt.tight_layout()
     plt.show()
 
+def plot_angles(t, x):
+    """
+    Plot roll (x3), pitch (x4), and yaw (x5) over time.
+    
+    Parameters
+    ----------
+    t : array-like
+        Time vector of shape (N,)
+    x : array-like
+        State trajectory of shape (N, 12)
+    """
+    roll  = x[:, 3]
+    pitch = x[:, 4]
+    yaw   = x[:, 5]
+
+    fig, axs = plt.subplots(3, 1, figsize=(8, 8), sharex=True)
+
+    axs[0].plot(t, roll, label="Roll (x3)", color="r")
+    axs[0].set_ylabel("Roll [rad]")
+    axs[0].grid(True)
+    axs[0].legend()
+
+    axs[1].plot(t, pitch, label="Pitch (x4)", color="g")
+    axs[1].set_ylabel("Pitch [rad]")
+    axs[1].grid(True)
+    axs[1].legend()
+
+    axs[2].plot(t, yaw, label="Yaw (x5)", color="b")
+    axs[2].set_ylabel("Yaw [rad]")
+    axs[2].set_xlabel("Time [s]")
+    axs[2].grid(True)
+    axs[2].legend()
+
+    plt.tight_layout()
+    plt.show()
+
 # States
 # x=[x y z roll pitch yaw vx vy vz  wr wp wy];
 #syms u1 u2 u3 u4
@@ -529,6 +565,8 @@ print(np.mean(time_full))
 plot_3d_trajectory(t, x_ol)
 
 plot_xyz_subplots(t, x_ol)
+
+plot_angles(t, x_ol)
 
 min_len = min(len(t), u_cl.shape[0])
 t = t[:min_len]

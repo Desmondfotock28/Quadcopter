@@ -281,11 +281,11 @@ def generate_identity_matrix(N_m, N_v):
 
 
 #Controller frequency and Prediction horizon
-Ts = 0.3    #sampling time in [s]
+Ts = 0.1    #sampling time in [s]
 
 N =  10      #prediction horizon
 
-tf= 3
+tf= 1
 
 nx= 12       #state dimension 
 
@@ -442,7 +442,7 @@ t =  np.linspace(0, N*Ts, N+1)
 
 plot_3d_trajectory(t, x_pred)
 
-Ts = 0.3
+Ts = 0.1
 sim_time = 100
 
 #NMPC in active subspace using Multiple shooting 
