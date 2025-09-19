@@ -66,15 +66,21 @@ def plot_xyz_subplots(t, x_pred):
     y_vals = x_pred[:, 1]
     z_vals = x_pred[:, 2]
 
+ 
     # Reference trajectory (example)
     t = np.array(t)
-    xr = np.sin(np.pi * t / 10)
-    yr = np.cos(np.pi * t / 10) - 1.0
-    zr = np.sin(np.pi * t / 10) + t
+    #xr = np.sin(np.pi * t / 10)
+    #yr = np.cos(np.pi * t / 10) - 1.0
+    #zr = np.sin(np.pi * t / 10) + t
 
     #xr = 0.5 + 0.2* np.cos(t)
     #yr = 0.5 + 0.2*np.sin(t) 
     #zr = 1.1 + 0.1*t
+
+    xr = np.ones(t.shape[0])
+    yr = np.ones(t.shape[0])
+    zr = np.ones(t.shape[0])
+
 
     # Create subplots
     fig, axs = plt.subplots(3, 1, figsize=(8, 10), sharex=True)
@@ -328,14 +334,22 @@ def reference_trajectory(t, omega=np.pi, a=0.1):
     - zr: np.ndarray, reference z-coordinate at time t
     """
     # Compute reference trajectory
-    xr =  np.sin(omega * t/10) 
-    yr = np.cos(omega * t/10) + -1.0
-    zr = np.sin(omega * t/10) + t
+    #xr =  np.sin(omega * t/10) 
+    #yr = np.cos(omega * t/10) + -1.0
+    #zr = np.sin(omega * t/10) + t
 
     #xr = 0.5 + 0.2* np.cos(t)
     #yr = 0.5 + 0.2*np.sin(t) 
     #zr = 1.1 + 0.1*t
+
+    #linear trajecttory 
+    xr = 1
+    yr = 1
+    zr = 1
+    phi = np.pi/3
     xref = vertcat(xr, yr, zr, np.zeros(9))
+    xref[5]=phi
+
     return xref
 
 
@@ -503,7 +517,7 @@ x_pred, u_ol, usol = run_open_loop_mpc(x0, Tr, u0 , pisolver)
 
 t =  np.linspace(0, N*Ts, N+1)
 
-plot_3d_trajectory(t, x_pred)
+plot_xyz_subplots(t, x_pred)
 
 def run_closed_loop_mpc(x0, Tr, Ts, sim_time, solver):
    
@@ -557,7 +571,7 @@ def run_closed_loop_mpc(x0, Tr, Ts, sim_time, solver):
 
 # Run the closed-loop MPC for 10s
 Ts = 0.1
-sim_time = 40
+sim_time = 20
 x_ol, u_cl, t, cost_n, time_full, U_open_loop = run_closed_loop_mpc(x0, Tr, Ts, sim_time, pisolver)
 
 print(np.mean(time_full))
