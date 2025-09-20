@@ -443,12 +443,12 @@ t =  np.linspace(0, N*Ts, N+1)
 plot_3d_trajectory(t, x_pred)
 
 Ts = 0.1
-sim_time = 100
+sim_time = 40
 
 #NMPC in active subspace using Multiple shooting 
 
 N_m = 40  # Number of rows
-nv = 35  # Number of columns
+nv = 10  # Number of columns
 T1 = generate_identity_matrix(N_m, nv)
 T2 = null_space(T1.T)
 
@@ -644,5 +644,8 @@ def run_closed_loop_activesubspace_mpc(x0, u0, Tr, Ts, sim_time, solver):
 
 x_ol_p ,  u_cl_p , t_p, time_full_p  = run_closed_loop_activesubspace_mpc(x0, u0, Tr , Ts, sim_time, pisolver_p )
 
+t_mean_p = np.mean(time_full_p)
+
+print(t_mean_p)
 plot_3d_trajectory(t_p, x_ol_p)
 plot_xyz_subplots(t_p, x_ol_p)

@@ -69,17 +69,17 @@ def plot_xyz_subplots(t, x_pred):
  
     # Reference trajectory (example)
     t = np.array(t)
-    #xr = np.sin(np.pi * t / 10)
-    #yr = np.cos(np.pi * t / 10) - 1.0
-    #zr = np.sin(np.pi * t / 10) + t
+    xr = np.sin(np.pi * t / 10)
+    yr = np.cos(np.pi * t / 10) - 1.0
+    zr = np.sin(np.pi * t / 10) + t
 
     #xr = 0.5 + 0.2* np.cos(t)
     #yr = 0.5 + 0.2*np.sin(t) 
     #zr = 1.1 + 0.1*t
 
-    xr = np.ones(t.shape[0])
-    yr = np.ones(t.shape[0])
-    zr = np.ones(t.shape[0])
+    #xr = np.ones(t.shape[0])
+    #yr = np.ones(t.shape[0])
+    #zr = np.ones(t.shape[0])
 
 
     # Create subplots
@@ -192,9 +192,9 @@ def Quadcopter_parameters() -> tuple:
     k = 9.8e-6      # N·s^2/rad^2, thrust coefficient (relates rotor speed squared to thrust) T = kw^2
     l = 0.225       # m, distance from the center to each rotor (arm length)
     b = 1.6e-7        # N·m·s^2/rad^2, drag/torque coefficient (relates rotor speed squared to torque) tau_M= bw^2 + I_Mw_dot
-    Ixx = 0.0035 # kg·m^2, moment of inertia around x-axis
-    Iyy = 0.035 # kg·m^2, moment of inertia around y-axis
-    Izz = 0.005 # kg·m^2, moment of inertia around z-axis
+    Ixx = 0.035    # kg·m^2, moment of inertia around x-axis
+    Iyy = 0.035     # kg·m^2, moment of inertia around y-axis
+    Izz = 0.005     # kg·m^2, moment of inertia around z-axis
     cm = 10000     # v^-2·s^-2, motor constant (relates control input to rotor speed squared)  
     kd = 0.25       # kg/s, linear drag coefficient (damping due to air resistance)  : drag coefficient 
 
@@ -334,21 +334,21 @@ def reference_trajectory(t, omega=np.pi, a=0.1):
     - zr: np.ndarray, reference z-coordinate at time t
     """
     # Compute reference trajectory
-    #xr =  np.sin(omega * t/10) 
-    #yr = np.cos(omega * t/10) + -1.0
-    #zr = np.sin(omega * t/10) + t
+    xr =  np.sin(omega * t/10) 
+    yr = np.cos(omega * t/10) + -1.0
+    zr = np.sin(omega * t/10) + t
 
     #xr = 0.5 + 0.2* np.cos(t)
     #yr = 0.5 + 0.2*np.sin(t) 
     #zr = 1.1 + 0.1*t
 
     #linear trajecttory 
-    xr = 1
-    yr = 1
-    zr = 1
-    phi = np.pi/3
+    #xr = 1
+    #yr = 1
+    #zr = 1
+    #phi = np.pi/3
     xref = vertcat(xr, yr, zr, np.zeros(9))
-    xref[5]=phi
+    #xref[5]=phi
 
     return xref
 
@@ -571,7 +571,7 @@ def run_closed_loop_mpc(x0, Tr, Ts, sim_time, solver):
 
 # Run the closed-loop MPC for 10s
 Ts = 0.1
-sim_time = 20
+sim_time = 40
 x_ol, u_cl, t, cost_n, time_full, U_open_loop = run_closed_loop_mpc(x0, Tr, Ts, sim_time, pisolver)
 
 print(np.mean(time_full))
