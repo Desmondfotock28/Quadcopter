@@ -32,7 +32,7 @@ def export_Quadcopter_ode_model() -> AcadosModel:
 
      #adding disturbance 
      # Disturbances (set to 0 if not used)
-    dwx, dwy, dwz = 0.0, 0.0, 0.0
+    dwx, dwy, dwz = 0.12, -0.08, 0.05
 
     nx  = 12 
     nu  = 4

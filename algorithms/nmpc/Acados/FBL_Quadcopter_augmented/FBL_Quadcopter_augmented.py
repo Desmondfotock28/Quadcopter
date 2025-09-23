@@ -21,6 +21,7 @@ def export_augmented_feedback_lineraise_Quadcopter_ode_model() -> AcadosModel:
     # --------------------------
 
     A, B, Bd = get_continous_time_matrices()
+    d_known = np.array([0.12, -0.08, 0.05])
 
     nw = A.shape[0]
     nv = B.shape[1]
@@ -44,7 +45,7 @@ def export_augmented_feedback_lineraise_Quadcopter_ode_model() -> AcadosModel:
     
     zdot = vertcat(wdot, ddot)
 
-    f_expl = vertcat(A @ w + B @ v + Bd @ d, v_d)
+    f_expl = vertcat(A @ w + B @ v + Bd @ d + Bd@d_known, v_d)
 
     f_impl = zdot - f_expl
 
