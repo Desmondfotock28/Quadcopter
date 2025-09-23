@@ -531,7 +531,6 @@ terminal_cost_fcn = Function("T_cost", [w], [terminal_cost])
 lb_v = np.array([ -537,  -537,  -537, -1675])    #right bound 
 ub_v  = np.array([537, 537 , 537, 1675 ])
 
-v0 = 0.5*(ub_v-lb_v)
 vmax = 1675
 Opt_Vars = vertcat(
     reshape(W, -1, 1),
