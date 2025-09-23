@@ -36,8 +36,16 @@ def get_continous_time_matrices():
         [0,0,0,1],
     ], dtype=float)
 
+     # Disturbance injection matrix: injects bias into rows 2, 6, 10
+    dist_indices = [1, 5, 9]
+    nd = len(dist_indices)
 
-    return A, B
+    Bd_cons = np.zeros((A.shape[0], nd))
+
+    for j, idx in enumerate(dist_indices):
+        Bd_cons[idx, j] = 1.0
+
+    return A, B, Bd_cons
 
 
 def plot_xyz_subplots(t, x_pred):

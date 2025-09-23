@@ -1,5 +1,5 @@
-from acados_template import AcadosOcp, AcadosOcpSolver, AcadosSimSolver
-from FBL_Quadcopter import export_feedback_lineraise_Quadcopter_ode_model
+from acados_template import AcadosSim, AcadosOcp, AcadosOcpSolver, AcadosSimSolver
+from FBL_Quadcopter import export_feedback_lineraise_Quadcopter_ode_model,export_quadcopter_realplant_model
 import numpy as np
 import time
 import scipy.linalg
@@ -32,7 +32,7 @@ def create_ocp_solver_description() -> AcadosOcp:
  
     # set model
     model = export_feedback_lineraise_Quadcopter_ode_model()
-
+    
     ocp.model = model
 
     # set dimensions
@@ -163,8 +163,19 @@ def closed_loop_simulation():
 
     acados_ocp_solver = AcadosOcpSolver(ocp, json_file = 'acados_ocp_' + ocp.model.name + '.json')
 
+        # export the real plant dynamics
+    realplant_model = export_quadcopter_realplant_model()
+
+    # sim description
+    sim = AcadosSim()
+    sim.model = realplant_model
+    sim.solver_options.integrator_type = 'ERK'    # explicit Runge-Kutta, or 'IRK'
+    sim.solver_options.T = ocp.solver_options.tf  # same horizon length
+    sim.solver_options.num_stages = 1
+    sim.solver_options.num_steps = 1
+
       # create an integrator with the same settings as used in the OCP solver.
-    acados_integrator = AcadosSimSolver(ocp, json_file = 'acados_ocp_' + ocp.model.name + '.json')
+    acados_integrator = AcadosSimSolver(sim, json_file = 'acados_sim_' + sim.model.name + '.json')
    
     Nsim = 400
 
