@@ -18,9 +18,9 @@ Ts = T_horizon /N_horizon
 t0 = 0.0
 
 # Input bounds for v (virtual controls)
-lb_v = np.array([-1.0, -0.05, -0.05, -0.05])
+lb_v =  np.array([ -537,  -537,  -537, -1675])
 
-ub_v = np.array([ 1.0,  0.05,  0.05,  0.05])
+ub_v = np.array([537, 537 , 537, 1675 ])
 
 
 # bounds on disturbance  
@@ -54,7 +54,7 @@ def create_ocp_solver_description() -> AcadosOcp:
     # y = [z; v], W = block_diag(Q_aug, R) where Q_aug = block_diag(Q_w, Q_d)
 
     # state cost (x part)
-    Q_w = np.diag([10,2,2,2, 10,2,2,2, 10,2,2,2, 10,10])  # (nw x nw)
+    Q_w = np.diag([40,2,2,2, 40,2,2,2, 50,2,2,2, 5,1])  # (nw x nw)
 
     # penalty on virtual control v
     R_v = 0.01 * np.eye(nv)
@@ -184,6 +184,13 @@ def closed_loop_simulation():
     simZ[0,:] = zcurrent
     t0 = 0.0
     t = [t0]
+    # initialize solver
+    for stage in range(N_horizon+1):
+        acados_ocp_solver.set(stage, 'x', zcurrent)
+
+    #for stage in range(N_horizon):
+        #acados_ocp_solver.set(stage, 'u', np.array([537, 537 , 537, 1675 ]))
+
     # closed loop
     for i in range(Nsim):
 
@@ -201,12 +208,7 @@ def closed_loop_simulation():
 
        
         
-        # initialize solver
-        for stage in range(N_horizon+1):
-            acados_ocp_solver.set(stage, 'x', zcurrent)
-
-        #for stage in range(N_horizon):
-            #acados_ocp_solver.set(stage, 'u', np.array([1.0, 0.05 , 0.05, 0.05]))
+       
 
         # solve ocp
         status = acados_ocp_solver.solve()

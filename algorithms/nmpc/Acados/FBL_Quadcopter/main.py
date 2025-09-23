@@ -18,9 +18,9 @@ Ts = T_horizon /N_horizon
 
 
 # Input bounds for v (virtual controls)
-lb_v = np.array([-1.0, -0.05, -0.05, -0.05])
+lb_v = np.array([ -537,  -537,  -537, -1675])
 
-ub_v = np.array([ 1.0,  0.05,  0.05,  0.05])
+ub_v = np.array([537, 537 , 537, 1675 ])
 
 nv = lb_v.shape[0]
 
@@ -47,20 +47,20 @@ def create_ocp_solver_description() -> AcadosOcp:
 
     # state cost (x part)
     Q_w = np.diag([
-            10,  # w1 (x-position)
+            40,  # w1 (x-position)
             2,  # w2 
             2,  # w3 
             2,   # w4 
-            10,   # w5 (y-position)
+            40,   # w5 (y-position)
             2,   # w6 
             2,   # w7 
             2,   # w8 
-            10,   # w9 (altitude)
-            10,   # w10 
-            10,   # w11 
-            10,    # w12 
-            10,   # w13 (yaw )
-            10    #w14
+            50,   # w9 (altitude)
+            2,   # w10 
+            2,   # w11 
+            2,    # w12 
+            5,   # w13 (yaw )
+            1    #w14
         ]) # (nw x nw)
 
      # penalty on virtual control v
@@ -178,6 +178,14 @@ def closed_loop_simulation():
     simW[0,:] = wcurrent
     t0 = 0.0
     t = [t0]
+
+    # initialize solver
+    for stage in range(N_horizon+1):
+        acados_ocp_solver.set(stage, 'x', wcurrent)
+
+    #for stage in range(N_horizon):
+        #acados_ocp_solver.set(stage, 'u', np.array([537, 537 , 537, 1675]))
+
     # closed loop
     for i in range(Nsim):
 
@@ -191,16 +199,7 @@ def closed_loop_simulation():
            
             acados_ocp_solver.set(k, "yref", reference_state(t0 + k*Ts, ny) )
         acados_ocp_solver.set(N_horizon, "yref", reference_state(t0 + N_horizon*Ts, nw))  # only states at terminal
-
-       
-        
-        # initialize solver
-        for stage in range(N_horizon+1):
-            acados_ocp_solver.set(stage, 'x', wcurrent)
-
-        #for stage in range(N_horizon):
-            #acados_ocp_solver.set(stage, 'u', np.array([1.0, 0.05 , 0.05, 0.05]))
-
+      
         # solve ocp
         status = acados_ocp_solver.solve()
 
