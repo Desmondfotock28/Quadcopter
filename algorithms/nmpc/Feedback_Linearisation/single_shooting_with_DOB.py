@@ -310,20 +310,20 @@ d_const = np.array([0.12, -0.08, 0.05])   # (nd,)
 nd = Bd_dist.shape[1]
 
 Q = np.diag([
-        10,  # w1 (x-position)
-        10,  # w2 
-        10,  # w3 
-        10,   # w4 
-        10,   # w5 (y-position)
-        10,   # w6 
-        10,   # w7 
-        10,   # w8 
-        10,   # w9 (altitude)
-        10,   # w10 
-        10,   # w11 
-        10,    # w12 
-        10,   # w13 (yaw )
-        10    #w14
+        40,  # w1 (x-position)
+        2,  # w2 
+        2,  # w3 
+        2,   # w4 
+        40,   # w5 (y-position)
+        2,   # w6 
+        2,   # w7 
+        2,   # w8 
+        50,   # w9 (altitude)
+        2,   # w10 
+        2,   # w11 
+        2,    # w12 
+        5,   # w13 (yaw )
+        1    #w14
     ])
 R = 0.01
 R = R*np.diag(np.ones(nv))
@@ -333,7 +333,7 @@ R = R*np.diag(np.ones(nv))
 Sx, Su, Sd = build_prediction_mats(A_d, B_d, Bd_dist, N)
 
 #Hard coded matrices
-Qblk, Rblk = build_blk_cost(Q, Q,R,N)
+Qblk, Rblk = build_blk_cost(Q, 10*Q, R, N)
 
 # H and h
 H = Su.T @ Qblk @ Su + Rblk
@@ -367,8 +367,6 @@ h = Su.T @ Qblk @ (Sx @ w + Sd @ c - Wref)
 
 
 
-
-
 # Define the stage cost and terminal cost 
 
 obj = 0.5 * mtimes([v.T, H, v]) + mtimes([h.T, v])  # scalar 
@@ -377,8 +375,9 @@ obj = 0.5 * mtimes([v.T, H, v]) + mtimes([h.T, v])  # scalar
 objective = Function("J", [w, v, c , Tr], [obj])
 
 # Input constraints
-lb_v = np.array([-1.0, -0.05, -0.05, -0.05])    #need to check the bound for the transfrom system
-ub_v = np.array([1.0, 0.05 , 0.05, 0.05])
+lb_v = np.array([ -537,  -537,  -537, -1675])    #right bound 
+ub_v  = np.array([537, 537 , 537, 1675 ])
+
 
 lbz = [lb_v]*N 
 ubz =   [ub_v]*N 
@@ -477,7 +476,7 @@ def run_open_loop_mpc(w0, v0 , solver ):
 
     return w_pred, v , vsol 
 
-v0 =  np.array([1.0, 0.05 , 0.05, 0.05])
+v0 =  np.array([537, 537 , 537, 1675 ])
 
 w0 = np.zeros(14)  
 
@@ -492,7 +491,7 @@ plot_3d_trajectory(t, w_pred)
 
 def run_closed_loop_mpc(w0, Ts, sim_time, solver):
    
-    v0 =  np.array([1.0, 0.05 , 0.05, 0.05])
+    v0 =  np.array([537, 537 , 537, 1675 ])
    
     gamma = np.zeros(nd)        # gamma(k-1) at first iter
 

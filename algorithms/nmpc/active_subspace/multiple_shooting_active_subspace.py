@@ -110,7 +110,7 @@ def Quadcopter_parameters() -> tuple:
     l = 0.225       # m, distance from the center to each rotor (arm length)
     b = 1.6e-7        # N·m·s^2/rad^2, drag/torque coefficient (relates rotor speed squared to torque) tau_M= bw^2 + I_Mw_dot
     Ixx = 0.0035 # kg·m^2, moment of inertia around x-axis
-    Iyy = 0.035 # kg·m^2, moment of inertia around y-axis
+    Iyy = 0.0035 # kg·m^2, moment of inertia around y-axis
     Izz = 0.005 # kg·m^2, moment of inertia around z-axis
     cm = 10000     # v^-2·s^-2, motor constant (relates control input to rotor speed squared)  
     kd = 0.25       # kg/s, linear drag coefficient (damping due to air resistance)  : drag coefficient 

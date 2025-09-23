@@ -251,20 +251,20 @@ W= SX.sym('W',nw,(N+1)) # Decision variables (states)
 D = SX.sym("D", nd, N+1)   # Disturbance trajectory
 
 Q = np.diag([
-        10,  # w1 (x-position)
+        40,  # w1 (x-position)
         2,  # w2 
         2,  # w3 
         2,   # w4 
-        10,   # w5 (y-position)
+        40,   # w5 (y-position)
         2,   # w6 
         2,   # w7 
         2,   # w8 
-        10,   # w9 (altitude)
+        40,   # w9 (altitude)
         2,   # w10 
         2,   # w11 
         2,    # w12 
-        10,   # w13 (yaw )
-        10    #w14
+        5,   # w13 (yaw )
+        1    #w14
     ])
 R = 0.01
 R = R*np.diag(np.ones(nv))
@@ -295,8 +295,9 @@ terminal_cost = bilin(S, w)
 terminal_cost_fcn = Function("T_cost", [w], [terminal_cost])
 
 # Input constraints
-lb_v = np.array([-1.0, -0.05, -0.05, -0.05])    #need to check the bound for the transfrom system
-ub_v = np.array([1.0, 0.05 , 0.05, 0.05])
+lb_v = np.array([ -537,  -537,  -537, -1675])    #right bound 
+ub_v  = np.array([537, 537 , 537, 1675 ])
+
 lb_d= np.array([-2.0, -2.0, -2.0])
 ub_d= np.array([2.0, 2.0, 2.0])
 
@@ -413,7 +414,7 @@ def run_open_loop_mpc(w0, t0 , v0 , solver ):
     v = np.array(v) 
     return w_pred, v , vsol
 
-v0 =  np.array([1.0, 0.05 , 0.05, 0.05])
+v0 =  np.array([537, 537 , 537, 1675])
 
 w0 = np.zeros(14)  
 
@@ -428,7 +429,7 @@ plot_3d_trajectory(t, w_pred)
 
 def run_closed_loop_mpc(w0, Tr, Ts, sim_time, solver):
    
-    v0 =  np.array([1.0, 0.05 , 0.05, 0.05])
+    v0 =  np.array([537, 537 , 537, 1675])
     d0 = np.zeros(nd)
     t0 = 0
     nw = w0.shape[0]

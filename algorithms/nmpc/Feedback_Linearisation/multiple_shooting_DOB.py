@@ -266,9 +266,9 @@ def solve_nonlinear_system(w, x0):
 def compute_alpha_beta(x):
     #Solution x = [x0=phi, x1=theta, x2=psi, x3=phi_dot, x4=theta_dot, x5=psi_dot, x6=U1, x7=U1_dot]
     m = 2.0
-    I_x = 1.25
-    I_y = 1.25
-    I_z = 2.5
+    I_x = 0.0035
+    I_y = 0.0035
+    I_z = 0.005
 
     # compute alpha vector
     alpha_1 = (2*x[7]/m)*(np.cos(x[1])*np.cos(x[0])*x[4] - np.sin(x[1])*np.sin(x[0])*x[3]) \
@@ -322,8 +322,8 @@ def compute_alpha_beta(x):
 
     beta_41 = 0.0
     beta_42 = 0.0
-    beta_43 = (sin(x[0])/cos(x[1]))*(1/I_y)
-    beta_44 = (cos(x[0])/cos(x[1]))*(1/I_z)
+    beta_43 = (np.sin(x[0])/np.cos(x[1]))*(1/I_y)
+    beta_44 = (np.cos(x[0])/np.cos(x[1]))*(1/I_z)
 
     beta = np.array([
         [beta_11, beta_12, beta_13, beta_14],
@@ -362,15 +362,15 @@ def solve_controls(v, alpha, beta):
     return u.flatten()
 
 def motor_speed(u):
-    b = 2.5e-5  #N.s^2
-    d = 0.5e-6  #N.m.s^2
-    l = 0.25    #m
+    k = 9.8e-6  #N.s^2
+    b = 1.6e-6  #N.m.s^2
+    l = 0.225    #m
     # mapping matrix from omega^2 to U
     M = np.array([
-        [b,               b,               b,               b],
-        [(np.sqrt(2)/2)*l*b, -(np.sqrt(2)/2)*l*b, -(np.sqrt(2)/2)*l*b, (np.sqrt(2)/2)*l*b],
-        [(np.sqrt(2)/2)*l*b, (np.sqrt(2)/2)*l*b, -(np.sqrt(2)/2)*l*b, -(np.sqrt(2)/2)*l*b],
-        [d,              -d,               d,              -d]
+        [k,               k,               k,               k],
+        [(np.sqrt(2)/2)*l*k, -(np.sqrt(2)/2)*l*k, -(np.sqrt(2)/2)*l*k, (np.sqrt(2)/2)*l*k],
+        [(np.sqrt(2)/2)*l*k, (np.sqrt(2)/2)*l*k, -(np.sqrt(2)/2)*l*k, -(np.sqrt(2)/2)*l*k],
+        [b,              -b,               b,              -b]
     ])
 
       #  solve for squared rotor speeds: M * omega_sq = u
@@ -495,20 +495,20 @@ W= SX.sym('W',nw,(N+1)) # Decision variables (states)
 
 
 Q = np.diag([
-        10,  # w1 (x-position)
+        40,  # w1 (x-position)
         2,  # w2 
         2,  # w3 
         2,   # w4 
-        10,   # w5 (y-position)
+        40,   # w5 (y-position)
         2,   # w6 
         2,   # w7 
         2,   # w8 
-        10,   # w9 (altitude)
-        10,   # w10 
-        10,   # w11 
-        10,    # w12 
-        10,   # w13 (yaw )
-        10    #w14
+        50,   # w9 (altitude)
+        2,   # w10 
+        2,   # w11 
+        2,    # w12 
+        5,   # w13 (yaw )
+        1    #w14
     ])
 R = 0.01
 R = R*np.diag(np.ones(nv))
@@ -527,10 +527,12 @@ terminal_cost = 10*bilin(Q, w)
 terminal_cost_fcn = Function("T_cost", [w], [terminal_cost])
 
 # Input constraints
-lb_v = np.array([-1.0, -0.05, -0.05, -0.05])    #need to check the bound for the transfrom system
-ub_v = np.array([1.0, 0.05 , 0.05, 0.05])
 
-vmax = 1.0
+lb_v = np.array([ -537,  -537,  -537, -1675])    #right bound 
+ub_v  = np.array([537, 537 , 537, 1675 ])
+
+v0 = 0.5*(ub_v-lb_v)
+vmax = 1675
 Opt_Vars = vertcat(
     reshape(W, -1, 1),
     reshape(V, -1, 1)
@@ -635,7 +637,7 @@ def run_open_loop_mpc(w0, t0 , v0 , solver ):
 
     return w_pred, v , vsol
 
-v0 =  np.array([1.0, 0.05 , 0.05, 0.05])
+v0 =  np.array([537, 537 , 537, 1675])
 
 # Example usage:
 
@@ -652,7 +654,8 @@ Tr =np.array([0.0])
 
 def run_closed_loop_mpc(w0, Tr, Ts, sim_time, solver):
    
-    v0 =  np.array([1.0, 0.05 , 0.05, 0.05])
+ 
+    v0 = np.array([537, 537 , 537, 1675])
 
     d_hat = np.zeros(nd)
 
@@ -709,7 +712,7 @@ def run_closed_loop_mpc(w0, Tr, Ts, sim_time, solver):
 
         #d_continous =  get_disturbance(t0)
         #d0 =  np.array([0.12, -0.08, 0.05])
-        d_continous = np.zeros(nd)
+        d_continous =  np.array([0.12, -0.08, 0.05])
 
         d_actual.append(d_continous[0])
 
@@ -734,7 +737,7 @@ def run_closed_loop_mpc(w0, Tr, Ts, sim_time, solver):
         
         d_hat = gamma + L_f@w0
 
-        d_hat = np.zeros(nd)
+        #d_hat = np.zeros(nd)
         
         d_predicted.append(d_hat[0])
        

@@ -296,9 +296,9 @@ def solve_nonlinear_system(w, x0):
 def compute_alpha_beta(x):
     #Solution x = [x0=phi, x1=theta, x2=psi, x3=phi_dot, x4=theta_dot, x5=psi_dot, x6=U1, x7=U1_dot]
     m = 2.0
-    I_x = 1.25
-    I_y = 1.25
-    I_z = 2.5
+    I_x = 0.0035
+    I_y = 0.0035
+    I_z = 0.005
 
     # compute alpha vector
     alpha_1 = (2*x[7]/m)*(np.cos(x[1])*np.cos(x[0])*x[4] - np.sin(x[1])*np.sin(x[0])*x[3]) \
@@ -451,20 +451,20 @@ d_const = np.array([0.12, -0.08, 0.05])   # (nd,)
 nd = Bd_dist.shape[1]
 
 Q = np.diag([
-        10,  # w1 (x-position)
+        40,  # w1 (x-position)
         2,  # w2 
         2,  # w3 
         2,   # w4 
-        10,   # w5 (y-position)
+        40,   # w5 (y-position)
         2,   # w6 
         2,   # w7 
         2,   # w8 
-        10,   # w9 (altitude)
+        50,   # w9 (altitude)
         2,   # w10 
         2,   # w11 
         2,    # w12 
-        10,   # w13 (yaw )
-        10    #w14
+        5,   # w13 (yaw )
+        1    #w14
     ])
 R = 0.01
 R = R*np.diag(np.ones(nv))
@@ -524,8 +524,9 @@ obj = 0.5 * mtimes([z.T, H, z]) + mtimes([h.T, z])  # scalar
 objective = Function("J", [w, z, Tr], [obj])
 
 # Input constraints
-lb_v = np.array([-1.0, -0.05, -0.05, -0.05])    #need to check the bound for the transfrom system
-ub_v = np.array([1.0, 0.05 , 0.05, 0.05])
+lb_v = np.array([ -537,  -537,  -537, -1675])    #right bound 
+ub_v  = np.array([537, 537 , 537, 1675 ])
+
 lb_d= np.array([-2.0, -2.0, -2.0])
 ub_d= np.array([2.0, 2.0, 2.0])
 
@@ -624,7 +625,7 @@ def run_open_loop_mpc(w0, v0 , solver ):
 
 
 
-v0 =  np.array([1.0, 0.05 , 0.05, 0.05])
+v0 =  np.array([537, 537 , 537, 1675])
 
 w0 = np.zeros(14)  
 
@@ -639,7 +640,7 @@ plot_3d_trajectory(t, w_pred)
 
 def run_closed_loop_mpc(w0, Ts, sim_time, solver):
    
-    v0 =  np.array([1.0, 0.05 , 0.05, 0.05])
+    v0 =  np.array([537, 537 , 537, 1675])
     d0 = np.zeros(nd)
     t0 = 0.0
     nw = w0.shape[0]
