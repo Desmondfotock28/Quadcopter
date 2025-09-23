@@ -18,7 +18,7 @@ def export_feedback_lineraise_Quadcopter_ode_model() -> AcadosModel:
     # System (your matrices)
     # --------------------------
 
-    A, B = get_continous_time_matrices()
+    A, B,_ = get_continous_time_matrices()
 
     nw = A.shape[0]
     nv = B.shape[1]
