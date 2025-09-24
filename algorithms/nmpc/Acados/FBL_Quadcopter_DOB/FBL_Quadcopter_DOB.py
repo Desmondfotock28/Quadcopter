@@ -99,6 +99,68 @@ def export_quadcopter_realplant_model() -> AcadosModel:
 
     return model
 
+def export_feedback_lineraise_Quadcopter_disturbance_observer() -> AcadosModel:
+
+    model_name = "FBL_Disturbance_Observer_ode"
+
+    #state :  gamma
+
+    #control: V0
+    
+    #parameter : w
+
+    # --------------------------
+    # System (your matrices)
+    # --------------------------
+    
+    A, B, Bd = get_continous_time_matrices()   # <- ensure Bd is returned in utils
+
+    # Disturbance observer gain matrix 
+    L_n = Bd.T
+
+    L_0 = L_n@Bd
+
+    nw = A.shape[0]
+
+    nv = B.shape[1]
+
+    nd = Bd.shape[1]
+
+    # States & controls
+    gamma = SX.sym('gamma', nd)   # plant state
+
+    v = SX.sym('v', nv)          # plant control
+
+    w = SX.sym('w', nw)          # plant state
+
+     # Derivative
+    gamma_dot = SX.sym('gamma_dot', nd)
+
+    # Disturbance Dynamics
+    f_expl = -L_0@(gamma + L_n @ w)-L_n@(A@w + B@v)
+
+    f_impl = gamma_dot - f_expl
+
+     # Build model
+    model = AcadosModel()
+
+    model.f_impl_expr = f_impl
+
+    model.f_expl_expr = f_expl
+
+    model.x = gamma
+
+    model.xdot = gamma_dot
+
+    model.u = v
+
+    model.p = w
+    
+    model.name = model_name
+
+    return model
+
+    
 
 def export_realcontrolInput_FBL_Quadcopter_model() -> AcadosModel:
     # TASK: implement this function,

@@ -1,5 +1,5 @@
 from acados_template import AcadosSim, AcadosOcp, AcadosOcpSolver, AcadosSimSolver
-from FBL_Quadcopter_DOB import export_feedback_lineraise_Quadcopter_ode_model,export_quadcopter_realplant_model
+from FBL_Quadcopter_DOB import export_feedback_lineraise_Quadcopter_ode_model,export_quadcopter_realplant_model, export_feedback_lineraise_Quadcopter_disturbance_observer
 import numpy as np
 import time
 import scipy.linalg
@@ -14,10 +14,6 @@ nv = B.shape[1]
 nw = A.shape[0]
 nd = Bd.shape[1]
 # Disturbance observer gain matrix 
-L_n = Bd.T
-
-L_0 = L_n@Bd
-
 L_f = Bd.T
 
 N_horizon = 10
@@ -132,12 +128,45 @@ def create_sim_solver_description() -> AcadosSim:
 
     # sim description
     sim = AcadosSim()
+
     sim.model = realplant_model
+
     sim.solver_options.integrator_type = 'ERK'    # explicit Runge-Kutta, or 'IRK'
+
     sim.solver_options.T = Ts 
+
     sim.solver_options.num_stages = 1
+
     sim.solver_options.num_steps = 1
+
     return sim
+
+def create_sim_observer_solver_description() -> AcadosSim:
+    # export the observer dynamics
+
+    # export the real plant dynamics
+    observer_model = export_feedback_lineraise_Quadcopter_disturbance_observer()
+
+    # sim description
+    sim_gamma = AcadosSim()
+
+    sim_gamma.model = observer_model
+
+    sim_gamma.solver_options.integrator_type = 'ERK'    # explicit Runge-Kutta, or 'IRK'
+
+    sim_gamma.solver_options.T = Ts 
+
+    sim_gamma.solver_options.num_stages = 1
+
+    sim_gamma.solver_options.num_steps = 1
+
+    # set parameter vector size
+    sim_gamma.parameter_values = np.zeros(nw)
+
+    return sim_gamma
+    
+    
+
 
 
 
@@ -187,8 +216,13 @@ def closed_loop_simulation():
     acados_ocp_solver = AcadosOcpSolver(ocp, json_file = 'acados_ocp_' + ocp.model.name + '.json')
 
     sim = create_sim_solver_description()
-      # create an integrator with the same settings as used in the OCP solver.
+    sim_gamma = create_sim_observer_solver_description()
+
+    # create an integrator with the same settings as used in the OCP solver.
     acados_integrator = AcadosSimSolver(sim, json_file = 'acados_sim_' + sim.model.name + '.json')
+
+    # create an integrator with the same settings as used in the OCP solver.
+    acados_integrator_gamma = AcadosSimSolver(sim_gamma, json_file = 'acados_sim_' + sim_gamma.model.name + '.json')
    
     Nsim = 400
 
@@ -245,18 +279,20 @@ def closed_loop_simulation():
 
         v0= simV[i,:]
 
+        # Set current gamma, v0, wcurrent
+        acados_integrator_gamma.set("x", gamma)
+        acados_integrator_gamma .set("u", v0)
+        acados_integrator_gamma .set("p", wcurrent)
 
-        gamma_prev = gamma
-
-        #implement observer 
-        
-        gamma_dot = -L_0@(gamma_prev + L_f @ wcurrent)-L_f@(A@wcurrent + B@v0)
+        # Solve for gamma(k) 
     
+        status = acados_integrator_gamma.solve()
 
-        # Solve for gamma(k)
+        if status != 0:
+            raise Exception(f'acados integrator gamma returned status {status} in closed loop instance {i}')
 
-        gamma = Ts*gamma_dot + gamma_prev
-     
+        gamma = acados_integrator_gamma.get("x")
+
         # simulate system
         acados_integrator.set("x", wcurrent)
         acados_integrator.set("u", v0)
