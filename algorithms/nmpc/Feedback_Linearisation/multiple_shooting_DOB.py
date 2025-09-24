@@ -466,15 +466,13 @@ w = SX.sym("w", nw)
 
 v = SX.sym("v", nv) 
 
-d_c = SX.sym('d', nd)   #disturbance 
+d_known = SX.sym("nd", nd) 
 
 
-d_use = np.array([ 0.01090142, -0.00484306,  0.15988432])
-
-w_next = A_d @ w + B_d @ v + Bd_dist@d_c +   Bd_dist@d_use   #need to confirm logic (reality)
+w_next = A_d @ w + B_d @ v +  Bd_dist@d_known   #need to confirm logic (reality)
 
 # Create the CasADi function
-system = Function("sys", [w, v , d_c ], [w_next])
+system = Function("sys", [w, v, d_known ], [w_next])
 
 # Define initial state
 
@@ -556,7 +554,7 @@ def equality_constraints():
         st = W[:, i]
         cons = V[:, i] 
       
-        st_next_model =  A_d @ st + B_d @ cons +  Bd_dist @(P[nw:nw+nd]) +Bd_dist@d_use     # (need to clean this)
+        st_next_model =  A_d @ st + B_d @ cons +  Bd_dist @(P[nw:nw+nd])    # (need to clean this)
 
         st_next = W[:, i+1]
         g.append(st_next -  st_next_model)
@@ -653,12 +651,11 @@ Tr =np.array([0.0])
 
 def run_closed_loop_mpc(w0, Tr, Ts, sim_time, solver):
    
- 
+    d_const = np.array([0.12, -0.08, 0.05])
+
     v0 = np.array([537, 537 , 537, 1675])
 
     d_hat = np.zeros(nd)
-
-    d0= np.array([0.12, -0.08, 0.05])
 
     # initialize gamma and d_hat
     gamma = np.zeros(nd)        # gamma(k-1) at first iter
@@ -709,11 +706,8 @@ def run_closed_loop_mpc(w0, Tr, Ts, sim_time, solver):
 
         v_apply = vsol[0, :]
 
-        #d_continous =  get_disturbance(t0)
-        #d0 =  np.array([0.12, -0.08, 0.05])
-        d_continous =  np.array([0.12, -0.08, 0.05])
-
-        d_actual.append(d_continous[0])
+        
+        d_actual.append(d_const[0])
 
         v_cl.append(vsol[0, :])
 
@@ -729,14 +723,13 @@ def run_closed_loop_mpc(w0, Tr, Ts, sim_time, solver):
 
 
     
-        t0, w0, v0 =shift(Ts, t0, w0, vsol, d_continous,  system)
+        t0, w0, v0 =shift(Ts, t0, w0, vsol, d_const,  system)
 
         
         # disturbance estimate
         
         d_hat = gamma + L_f@w0
 
-        #d_hat = np.zeros(nd)
         
         d_predicted.append(d_hat[0])
        
