@@ -1,4 +1,4 @@
-# Autonomous F450 Quadcopter Project
+# Autonomous F450 Quadcopter Project (Ongoing Project)
 
 <div align="center">
   <img src="assets/hardware/model_real.jpeg" alt="F450 Quadcopter" height="300"><br>
