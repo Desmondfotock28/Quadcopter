@@ -1,3 +1,0 @@
-/**:
-  ros__parameters:
-    state_estimation_topic: '/Robot_1/pose'
