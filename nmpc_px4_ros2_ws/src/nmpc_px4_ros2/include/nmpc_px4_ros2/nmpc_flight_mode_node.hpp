@@ -97,6 +97,8 @@ public:
 
   void updateSetpoint(float dt_s) override
   {
+    RCLCPP_INFO(_node.get_logger(), "updateSetpoint: ref_traj_len = %d, iter = %d", ref_traj_len, iter);
+     
     Eigen::Vector3f pos_ned = _vehicle_local_position_velocity->positionNed();
     Eigen::Quaternionf quat_ned = _vehicle_attitude->attitude();
     Eigen::Vector3f lin_vel_ned = _vehicle_local_position_velocity->velocityNed();
@@ -147,7 +149,13 @@ public:
           current_state = State::HOLD;
         }
         break;
-       if (holding == false)
+        
+      case State::HOLD:
+
+    static double hold_state[NY];
+    static double hold_state_e[NX];
+
+    if (holding == false)
     {
         
         // Use the final trajectory point as the hold reference
@@ -169,7 +177,8 @@ public:
     }
     ocp_nlp_cost_model_set(nlp_config, nlp_dims, nlp_in, N, "yref", hold_state_e);
     break;
-    }
+}
+
 
     _solveOCP();
     _setThrust();
@@ -218,7 +227,10 @@ private:
 private:
   void _refTrajCallback(const nmpc_px4_ros2_interfaces::msg::StateTrajectory & msg)
   {
+    
     ref_traj_len = msg.len.data;
+    RCLCPP_INFO(_node.get_logger(), "Received new trajectory, ref_traj_len = %d", ref_traj_len);
+
     for (int i = 0; i < ref_traj_len; i++)
     {
       std::vector<double> state;
