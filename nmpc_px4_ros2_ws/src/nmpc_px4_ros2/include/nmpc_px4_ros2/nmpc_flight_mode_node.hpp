@@ -147,53 +147,28 @@ public:
           current_state = State::HOLD;
         }
         break;
-      case State::HOLD:
-        static double hold_state[NY];
-        static double hold_state_e[NX];
+       if (holding == false)
+    {
+        
+        // Use the final trajectory point as the hold reference
+        const auto &final_ref = ref_traj.back();
 
-        if (holding == false)
-        {
-          // TODO: Cleanup this thingy
-          hold_state[0] = pos_enu(0);
-          hold_state[1] = pos_enu(1);
-          hold_state[2] = pos_enu(2);
-          hold_state[3] = 1.0;
-          hold_state[4] = 0.0;
-          hold_state[5] = 0.0;
-          hold_state[6] = 0.0;
-          hold_state[7] = 0.0;
-          hold_state[8] = 0.0;
-          hold_state[9] = 0.0;
-          hold_state[10] = 0.0;
-          hold_state[11] = 0.0;
-          hold_state[12] = 0.0;
-          hold_state[13] = uhov;
-          hold_state[14] = uhov;
-          hold_state[15] = uhov;
-          hold_state[16] = uhov;
+        // Copy trajectory end state into hold_state and hold_state_e
+        std::copy_n(final_ref.begin(), NY, hold_state);
+        std::copy_n(final_ref.begin(), NX, hold_state_e);
 
-          hold_state_e[0] = pos_enu(0);
-          hold_state_e[1] = pos_enu(1);
-          hold_state_e[2] = pos_enu(2);
-          hold_state_e[3] = 1.0;
-          hold_state_e[4] = 0.0;
-          hold_state_e[5] = 0.0;
-          hold_state_e[6] = 0.0;
-          hold_state_e[7] = 0.0;
-          hold_state_e[8] = 0.0;
-          hold_state_e[9] = 0.0;
-          hold_state_e[10] = 0.0;
-          hold_state_e[11] = 0.0;
-          hold_state_e[12] = 0.0;
+        RCLCPP_INFO(_node.get_logger(), "Hold initialized at final trajectory point: [%.2f, %.2f, %.2f]",
+                    hold_state[0], hold_state[1], hold_state[2]);
 
-          holding = true;
-        }
-        for (int j = 0; j < N; j++)
-        {
-          ocp_nlp_cost_model_set(nlp_config, nlp_dims, nlp_in, j, "yref", hold_state);
-        }
-        ocp_nlp_cost_model_set(nlp_config, nlp_dims, nlp_in, N, "yref", hold_state_e);
-        break;
+        holding = true;
+    }
+
+    // Keep applying the hold reference for all prediction steps
+    for (int j = 0; j < N; j++) {
+        ocp_nlp_cost_model_set(nlp_config, nlp_dims, nlp_in, j, "yref", hold_state);
+    }
+    ocp_nlp_cost_model_set(nlp_config, nlp_dims, nlp_in, N, "yref", hold_state_e);
+    break;
     }
 
     _solveOCP();
