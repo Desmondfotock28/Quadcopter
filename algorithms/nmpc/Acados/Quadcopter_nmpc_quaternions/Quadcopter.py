@@ -2,33 +2,32 @@ from acados_template import AcadosModel
 from casadi import  MX, vertcat, horzcat
 
 
-def export_x500_ode_model() -> AcadosModel:
 
-    model_name = "nmpc_flight_mode"
+def export_Quadcopter_ode_model() -> AcadosModel:
+     
+    model_name = 'Quadcopter_ode'
 
     """Define system parameters and constraints."""
 
-        # ---------------------------
-    # X500 PARAMETERS
+    # ---------------------------
+    # F450 PARAMETERS
     # ---------------------------
     m = 2.0                                     # [kg] total mass
     g = 9.8066                                  # [m/s^2] Gravity   
-    jx, jy, jz = 0.02166, 0.02166, 0.04        # [kg.m^2] Inertia moment
-    cd  = 8.06428e-05                           # Rotor drag coef
-    dx = [0.174, 0.174, 0.174, 0.174]          # [m] Distance from center to rotors
-    dy = [0.174, 0.174, 0.174, 0.174]          # [m] Distance from center to rotors
+    jx, jy, jz = 0.0035, 0.0035, 0.005         # [kg.m^2] Inertia moment
+    cd  = 1.6e-7                               # Rotor drag coef
+    dx = [0.225, 0.225, 0.225, 0.225]          # [m] Distance from center to rotors
+    dy = [0.225, 0.225, 0.225, 0.225]          # [m] Distance from center to rotors
 
-
-   
-    # Model definition
+     # Model definition
 
     # ---------------------------
     # State variables
     # ---------------------------
-    px, py, pz = MX.sym('px', 1), MX.sym('py', 1), MX.sym('pz', 1)
-    vx, vy, vz = MX.sym('vx', 1), MX.sym('vy', 1), MX.sym('vz', 1)
-    qw, qx, qy, qz = MX.sym('qw',1), MX.sym('qx',1), MX.sym('qy',1), MX.sym('qz',1), 
-    wx, wy, wz = MX.sym('wx', 1), MX.sym('wy', 1), MX.sym('wz', 1)
+    px, py, pz = MX.sym('px', 1), MX.sym('py', 1), MX.sym('pz', 1)      #position x y z
+    vx, vy, vz = MX.sym('vx', 1), MX.sym('vy', 1), MX.sym('vz', 1)      #velocity dx dy dz
+    qw, qx, qy, qz = MX.sym('qw',1), MX.sym('qx',1), MX.sym('qy',1), MX.sym('qz',1) #orientation in quaternions q = qw + qxi + qyj + qzk
+    wx, wy, wz = MX.sym('wx', 1), MX.sym('wy', 1), MX.sym('wz', 1)                # angular velocities wx, wy, wz
 
     # ---------------------------
     # Time derivative of state variables

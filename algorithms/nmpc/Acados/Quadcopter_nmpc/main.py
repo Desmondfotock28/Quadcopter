@@ -133,7 +133,7 @@ def solve_single_ocp():
 
     print(solver_time)
 
-#solve_single_ocp()
+solve_single_ocp()
 
 
 
