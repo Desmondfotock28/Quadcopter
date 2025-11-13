@@ -1,0 +1,4 @@
+
+# shellcheck disable=SC2154
+mavlink stream -r 50 -s DISTANCE_SENSOR -u $udp_gcs_port_local
+mavlink stream -r 30 -s OPTICAL_FLOW_RAD -u $udp_gcs_port_lo
