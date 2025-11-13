@@ -50,7 +50,13 @@ Comprehensive documentation available in the [project wiki](https://github.com/D
 │       └── Feedback linearisation/    # Feedback linearisation methods
         └── Multiple/Single shooting / # Mutiple/Single shooting methods
         └── active_subspace/    # Active subspace optimization method
-        └── Acados/        # Implementation with Acados                  
+        └── Acados/        # Implementation with Acados
+├── nmpc_ros2_ws/            # ROS packages for SITL (not for RPi deployment)
+│   └── src/                # ROS2 control nodes with C++ implementation
+│       └── nmpc_px4_ros2/    # Implementation of ROS2 NMPC control node 
+        └── 3rd party /     # consist of third party application
+        └── nmpc_px4_ros2_interface/    # PX4-ROS2 interfaces
+        └── px4_msgs/         # PX4 Messages                    
 ├── src/                    # ROS packages for deployment
 │   └── drone_control/      # ROS2 control nodes with C++ implementation
 ├── hardware/               # CAD models and 3D designs
