@@ -50,7 +50,13 @@ Comprehensive documentation available in the [project wiki](https://github.com/D
 │       └── Feedback linearisation/    # Feedback linearisation methods
         └── Multiple/Single shooting / # Mutiple/Single shooting methods
         └── active_subspace/    # Active subspace optimization method
-        └── Acados/        # Implementation with Acados                  
+        └── Acados/        # Implementation with Acados
+├── nmpc_ros2_ws/            # ROS packages for SITL (not for RPi deployment)
+│   └── src/                # ROS2 control nodes with C++ implementation
+│       └── nmpc_px4_ros2/    # Implementation of ROS2 NMPC control node 
+        └── 3rd party /     # Consist of third party application
+        └── nmpc_px4_ros2_interface/    # PX4-ROS2 interfaces
+        └── px4_msgs/         # PX4 Messages                    
 ├── src/                    # ROS packages for deployment
 │   └── drone_control/      # ROS2 control nodes with C++ implementation
 ├── hardware/               # CAD models and 3D designs
@@ -137,11 +143,12 @@ ros2 run rqt_console rqt_console
 - [x] Hardware integration (F450 + Pixhawk + RPi4B)
 - [x] Custom 3D printed mounting solutions
 - [x] Mathematical modeling and simulation framework
+- [x] ROS integration and node architecture
+
 
 ### In Progress  
-- [ ] ROS integration and node architecture
-- [ ] Intel RealSense camera integration
 - [ ] Gazebo simulation environment
+- [ ] Intel RealSense camera integration
 
 ### Planned
 - [ ] SLAM implementation for GPS-denied navigation
