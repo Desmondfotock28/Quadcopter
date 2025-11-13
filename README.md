@@ -143,11 +143,12 @@ ros2 run rqt_console rqt_console
 - [x] Hardware integration (F450 + Pixhawk + RPi4B)
 - [x] Custom 3D printed mounting solutions
 - [x] Mathematical modeling and simulation framework
+- [x] ROS integration and node architecture
+
 
 ### In Progress  
-- [ ] ROS integration and node architecture
-- [ ] Intel RealSense camera integration
 - [ ] Gazebo simulation environment
+- [ ] Intel RealSense camera integration
 
 ### Planned
 - [ ] SLAM implementation for GPS-denied navigation
