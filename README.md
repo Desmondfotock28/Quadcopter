@@ -56,7 +56,13 @@ Comprehensive documentation available in the [project wiki](https://github.com/D
 │       └── nmpc_px4_ros2/    # Implementation of ROS2 NMPC control node 
         └── 3rd party /     # Consist of third party application
         └── nmpc_px4_ros2_interface/    # PX4-ROS2 interfaces
-        └── px4_msgs/         # PX4 Messages                    
+        └── px4_msgs/         # PX4 Messages
+
+├── model/                  # PX4-Autopilote custom model 
+│   └── Airframes/          # ROS2 control nodes with C++ implementation
+    └── src/                # ROS2 control nodes with C++ implementation
+    └── src/                # ROS2 control nodes with C++ implementation
+                
 ├── src/                    # ROS packages for deployment
 │   └── drone_control/      # ROS2 control nodes with C++ implementation
 ├── hardware/               # CAD models and 3D designs
