@@ -58,10 +58,10 @@ Comprehensive documentation available in the [project wiki](https://github.com/D
         └── nmpc_px4_ros2_interface/    # PX4-ROS2 interfaces
         └── px4_msgs/         # PX4 Messages
 
-├── model/                  # PX4-Autopilote custom model 
-│   └── Airframes/          # ROS2 control nodes with C++ implementation
-    └── src/                # ROS2 control nodes with C++ implementation
-    └── src/                # ROS2 control nodes with C++ implementation
+├── model/                  # PX4-Autopilote custom model SILT 
+│   └── airframes/          # model airframes
+    └── quad_f450_camera/   #Quadcopter F450 sdf file with config file 
+    └── quad_f450_camera_base/ #Quadcopter F450 base sdf with config file  
                 
 ├── src/                    # ROS packages for deployment
 │   └── drone_control/      # ROS2 control nodes with C++ implementation
