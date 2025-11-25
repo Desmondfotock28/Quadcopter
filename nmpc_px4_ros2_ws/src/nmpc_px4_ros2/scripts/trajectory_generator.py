@@ -32,7 +32,7 @@ def generate_circle_trajectory(starting_point, radius, steps):
         x = xc + radius * math.cos(t)
         y = yc + radius * math.sin(t)
         z = zc
-        state = [x, y, z, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 4.9033, 4.9033, 4.9033, 4.9033]
+        state = [x, y, z, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 4.0452, 4.0452, 4.0452, 4.0452]
         trajectory.append(state)
 
     _plot(trajectory, starting_point)
@@ -48,7 +48,7 @@ def generate_eight_trajectory(starting_point, radius, steps):
         x = x0 + radius * math.sin(t)
         y = y0 + radius * math.sin(2*t) / 2
         z = z0
-        state = [x, y, z, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 4.9033, 4.9033, 4.9033, 4.9033]
+        state = [x, y, z, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 4.0452, 4.0452, 4.0452, 4.0452]
         trajectory.append(state)
 
     _plot(trajectory, starting_point)
@@ -65,7 +65,7 @@ def generate_spiral_trajectory(starting_point, radius, steps, height):
         x = xc + radius * math.cos(t)
         y = yc + radius * math.sin(t)
         z = zc + (height / (2.0 * np.pi)) * t  # Linear increase in z
-        state = [x, y, z, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 4.9033, 4.9033, 4.9033, 4.9033]
+        state = [x, y, z, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 4.0452, 4.0452, 4.0452, 4.0452]
         trajectory.append(state)
 
     _plot(trajectory, starting_point)
@@ -79,7 +79,7 @@ def generate_straight_trajectory(starting_point, length, steps):
         x = x0 + (length / steps) * i
         y = y0
         z = z0
-        state = [x, y, z, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 4.9033, 4.9033, 4.9033, 4.9033]
+        state = [x, y, z, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 4.0452, 4.0452, 4.0452, 4.0452]
         trajectory.append(state)
 
     _plot(trajectory, starting_point)
@@ -90,14 +90,14 @@ def generate_static_trajectory(starting_point, steps):
     trajectory = []
 
     for _ in range(steps + 1):
-        state = [x0, y0, z0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 4.9033, 4.9033, 4.9033, 4.9033]
+        state = [x0, y0, z0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 4.0452, 4.0452, 4.0452, 4.0452]
         trajectory.append(state)
 
     _plot(trajectory, starting_point)
     _save('static.txt', trajectory)
 
 starting_point = (0, 0, 3)
-radius = 10
+radius = 5        #10
 steps = 10000
 height = 2
 length = 10

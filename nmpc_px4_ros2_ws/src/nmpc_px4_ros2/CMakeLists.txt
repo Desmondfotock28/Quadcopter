@@ -30,8 +30,8 @@ find_package(nmpc_px4_ros2_utils REQUIRED)
 #   message(FATAL_ERROR "The environment variable ACADOS_SOURCE_DIR is not set. Please set it to the path of the ACADOS source directory.")
 # endif()
 
-set(acados_include "/home/desmond/acados/include")
-set(acados_lib "/home/desmond/acados/lib")
+set(acados_include "/home/udeme/acados/include")
+set(acados_lib "/home/udeme/acados/lib")
 set(full_model_build "${PROJECT_SOURCE_DIR}/scripts/c_generated_code")
 
 include_directories(
@@ -75,7 +75,7 @@ install(TARGETS
 install(
   DIRECTORY 
   scripts
-  /home/desmond/acados/lib
+  /home/udeme/acados/lib
   DESTINATION share/${PROJECT_NAME}
 )
 

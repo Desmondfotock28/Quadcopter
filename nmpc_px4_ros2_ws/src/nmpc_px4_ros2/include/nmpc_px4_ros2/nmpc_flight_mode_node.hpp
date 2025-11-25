@@ -40,11 +40,11 @@ public:
   : ModeBase(node, kName), _node(node)
   {
     // TODO: Define ros2 params for mass, gravity, thrust weight ratio, thrust coefficient etc
-    _node.declare_parameter("mass", 2.0);
+    _node.declare_parameter("mass", 1.65);
     _node.declare_parameter("gravity", 9.8066);
-    _node.declare_parameter("thrust_weight_ratio", 1.75);
-    _node.declare_parameter("thrust_coefficient", 8.580775e-06);
-    _node.declare_parameter("max_omega", 1000.0);
+    _node.declare_parameter("thrust_weight_ratio", 2.85);
+    _node.declare_parameter("thrust_coefficient", 1.28627e-05);
+    _node.declare_parameter("max_omega", 900.0);
 
     uhov = _node.get_parameter("mass").as_double() * _node.get_parameter("gravity").as_double() / NU;
 
