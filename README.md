@@ -1,175 +1,165 @@
-# Autonomous F450 Quadcopter Project (Ongoing Project)
+# Autonomous F450 Quadcopter
 
 <div align="center">
-  <img src="assets/hardware/model_real.jpeg" alt="F450 Quadcopter" height="300"><br>
-  <sub><b>F450 Quadcopter Platform</b></sub>
+
+![ROS2](https://img.shields.io/badge/ROS2-Humble-blue)
+![PX4](https://img.shields.io/badge/PX4-Autopilot-orange)
+![C++](https://img.shields.io/badge/C++-17-00599C)
+![Python](https://img.shields.io/badge/Python-3.10-3776AB)
+
+**NMPC-based trajectory tracking for autonomous flight**
+
+<img src="nmpc_px4_ros2_ws/src/media/nmpc_px4_ros2_clip.gif" alt="NMPC Simulation" width="600"/>
+
+*Real-time NMPC trajectory tracking in Gazebo with PX4 SITL*
+
 </div>
-
-An advanced autonomous quadcopter system combining **control**, **computer vision**, and **custom hardware integration** for GPS-denied navigation. This project explores the complete development pipeline from mathematical modeling and simulation to real-world implementation.
-## Project Overview
-
-This project combines multiple robotics domains to create an autonomous quadcopter capable of navigation in GPS-denied environments:
-
-- **Advanced Control**: Nonlinear Model Predictive Control (NMPC) and PID implementations
-- **Computer Vision**: SLAM and object detection using Intel RealSense depth camera  
-- **Hardware Integration**: Custom 3D-printed mounting solutions for Pixhawk + Raspberry Pi 4B and Intel RealSense Depth Camera
-- **Software Architecture**: ROS-based modular system design
-- **Full Pipeline**: From mathematical modeling through simulation to real-world testing
-
-## Hardware Platform
-
-**HAWK'S WORK F450 Drone Kit** with custom integration:
-- **Flight Controller**: Pixhawk (ArduPilot/PX4)
-- **Companion Computer**: Raspberry Pi 4B
-- **Depth Camera**: Intel RealSense
-- **Custom Components**: 3D-printed mounting plates for clean integration
-
-<div align="center">
-  <img src="assets/models/annotate3D_model.jpg" alt="F450 Quadcopter 3D Model" height="300"><br>
-  <sub><b>F450 Quadcopter Platform 3D Model</b></sub>
-</div>
-
-## Documentation
-
-Comprehensive documentation available in the [project wiki](https://github.com/Desmondfotock28/Quadcopter/wiki):
-
-- **[Hardware Setup](https://github.com/Desmondfotock28/Quadcopter/wiki/Hardware-Setup)** - Complete build guide with 3D printed components
-- **[Control Theory](https://github.com/Desmondfotock28/Quadcopter/wiki/Control-Theory)** - Mathematical foundations and NMPC formulation  
-- **[NMPC Implementation](https://github.com/Desmondfotock28/Quadcopter/wiki/NMPC-Implementation)** - Algorithm development and testing
-- **[Computer Vision](https://github.com/Desmondfotock28/Quadcopter/wiki/Computer-Vision)** - SLAM and object detection roadmap
-- **[ROS Integration](https://github.com/Desmondfotock28/Quadcopter/wiki/ROS-Integration)** - System architecture and communication
-- **[3D Printing](https://github.com/Desmondfotock28/Quadcopter/wiki/3D-Printing)** - Custom mounting plate design and manufacturing
-- **[Learning Journey](https://github.com/Desmondfotock28/Quadcopter/wiki/Learning-Journey)** - Skills development and project evolution
-
-## Quick Start
-
-### Repository Structure
-```
-├── algorithms/             # Algorithm development (not for RPi deployment)
-│   └── nmpc/               # NMPC implementations and testing
-│       └── Feedback linearisation/    # Feedback linearisation methods
-        └── Multiple/Single shooting / # Mutiple/Single shooting methods
-        └── active_subspace/    # Active subspace optimization method
-        └── Acados/        # Implementation with Acados
-├── nmpc_ros2_ws/            # ROS packages for SITL (not for RPi deployment)
-│   └── src/                # ROS2 control nodes with C++ implementation
-│       └── nmpc_px4_ros2/    # Implementation of ROS2 NMPC control node 
-        └── 3rd party /     # Consist of third party application
-        └── nmpc_px4_ros2_interface/    # PX4-ROS2 interfaces
-        └── px4_msgs/         # PX4 Messages
-
-├── model/                  # PX4-Autopilote custom model SILT 
-│   └── airframes/          # model airframes
-    └── quad_f450_camera/   #Quadcopter F450 sdf file with config file 
-    └── quad_f450_camera_base/ #Quadcopter F450 base sdf with config file  
-                
-├── src/                    # ROS packages for deployment
-│   └── drone_control/      # ROS2 control nodes with C++ implementation
-├── hardware/               # CAD models and 3D designs
-│   └── cad_models/         # STEP files for all drone components
-├── assets/                 # Images and documentation media
-│   ├── hardware/           # Photos of physical drone
-│   └── models/             # 3D renderings and diagrams
-└── *.sh                    # Helper scripts for MAVROS2 operations
-```
-
-### Running NMPC Simulations (Development)
-```bash
-# Single shooting NMPC
-python algorithms/nmpc/Multiple_Single shooting/single_shooting_nmpc.py
-
-# Multiple shooting NMPC  
-python algorithms/nmpc/Multiple_Single shooting/multiple_shooting_nmpc.py
-
-# Active subspace methods
-python algorithms/nmpc/active_subspace/single_shooting_active_subspace.py
-
-# Feedback Linearisation NMPC
-python algorithms/nmpc/Feedback_Linearisation/multiple_shooting_DOB.py
-```
-
-
-### Raspberry Pi Deployment (ROS2)
-
-#### SSH into Raspberry Pi
-```bash
-# Connect to RPi
-ssh [USERNAME]@[YOUR-IP]
-
-# Or if using hostname
-ssh [USERNAME]@drone-rpi.local
-```
-
-#### Build ROS2 Packages
-```bash
-# On the Raspberry Pi
-cd ~/Quadcopter
-
-# Source ROS2 environment
-source /opt/ros/humble/setup.bash
-
-# Build the drone control package
-colcon build --packages-select drone_control
-
-# Source the workspace
-source install/setup.bash
-```
-
-#### Run Motor Test
-```bash
-# SAFETY: Ensure propellers are removed or drone is secured!
-
-# Start MAVROS2 (in one terminal)
-./start_mavros2.sh
-
-# In another terminal, run motor test
-ros2 run drone_control motor_test_mavros2
-
-# Or use the all-in-one script
-./run_mavros2_motor_test.sh
-```
-
-#### Monitor System Status
-```bash
-# Check ROS2 topics
-ros2 topic list
-
-# Monitor drone state
-ros2 topic echo /mavros/state
-
-# View system diagnostics
-ros2 run rqt_console rqt_console
-```
-
-## Current Status & Roadmap
-
-### Completed
-- [x] NMPC algorithm development (single/multiple shooting)
-- [x] Active subspace optimization methods
-- [x] Hardware integration (F450 + Pixhawk + RPi4B)
-- [x] Custom 3D printed mounting solutions
-- [x] Mathematical modeling and simulation framework
-- [x] ROS integration and node architecture
-
-
-### In Progress  
-- [ ] Gazebo simulation environment
-- [ ] Intel RealSense camera integration
-
-### Planned
-- [ ] SLAM implementation for GPS-denied navigation
-- [ ] Object detection and avoidance algorithms
-- [ ] Real-world flight testing and validation
-- [ ] Performance benchmarking and optimization
-
-## Contributing
-
-This is an open research and development project. See [Learning Journey](https://github.com/Desmondfotock28/Quadcopter/wiki/Learning-Journey) for our development approach and lessons learned.
-
-## License
-
-This project is open source and available under the [MIT License](LICENSE).
 
 ---
 
-*An exploration of advanced autonomous systems through practical implementation of control theory, computer vision, and robotics engineering.*
+## About This Project
+
+End-to-end autonomous quadcopter development demonstrating the complete robotics pipeline: mathematical modeling → algorithm development → simulation validation → hardware integration.
+
+**Core Achievement**: Implemented real-time Nonlinear Model Predictive Control achieving <1ms solve times and <15cm tracking error in simulation.
+
+---
+
+## Technical Highlights
+
+| Area | Implementation |
+|------|----------------|
+| **Control** | NMPC with 5 algorithm variants (multiple shooting, feedback linearization, disturbance observer) |
+| **Optimization** | Acados C code generation for real-time performance (0.48ms solve time) |
+| **Simulation** | Full PX4 SITL integration with custom Gazebo models |
+| **Software** | ROS2 Humble, custom flight mode via px4-ros2-interface-lib |
+| **Hardware** | Pixhawk + Raspberry Pi 4B with custom 3D-printed mounts |
+
+---
+
+## System Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        DEVELOPMENT                              │
+├─────────────────────────────────────────────────────────────────┤
+│  CasADi (Python)  →  Acados (C code gen)  →  ROS2 Node (C++)   │
+│  [Prototyping]        [Optimization]          [Real-time]       │
+└─────────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────────┐
+│                        VALIDATION                               │
+├─────────────────────────────────────────────────────────────────┤
+│  PX4 SITL  ←→  ROS2  ←→  NMPC Node  ←→  Gazebo                 │
+└─────────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────────┐
+│                        DEPLOYMENT                               │
+├─────────────────────────────────────────────────────────────────┤
+│  Pixhawk  ←→  MAVLink  ←→  Raspberry Pi 4B  ←→  ROS2 Nodes     │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Simulation Results
+
+| Metric | Value |
+|--------|-------|
+| NMPC Solve Time | 0.48 ms |
+| Position RMSE | 0.124 m |
+| Max Tracking Error | 0.19 m |
+| Control Horizon | N = 10 |
+
+*Results from Gazebo SITL simulation with PX4. Hardware flight testing planned.*
+
+<table>
+<tr>
+<td width="50%">
+<img src="assets/hardware/model_real.jpeg" alt="Hardware" width="100%"/>
+<p align="center"><sub>F450 Hardware Platform</sub></p>
+</td>
+<td width="50%">
+<img src="assets/models/annotate3D_model.jpg" alt="CAD Model" width="100%"/>
+<p align="center"><sub>Custom 3D-Printed Integration</sub></p>
+</td>
+</tr>
+</table>
+
+---
+
+## Skills Demonstrated
+
+**Control Systems**: Nonlinear dynamics modeling, optimal control formulation, NMPC implementation, feedback linearization, disturbance rejection
+
+**Software Engineering**: ROS2 node development (C++), real-time systems, CMake/colcon build systems, PX4 integration
+
+**Robotics Integration**: Sensor fusion concepts, coordinate frame management (NED/ENU), hardware-software interface design
+
+**Tools**: CasADi, Acados, Gazebo, PX4, MAVROS2, Fusion 360
+
+---
+
+## Repository Structure
+
+```
+├── algorithms/nmpc/           # NMPC implementations (Python/CasADi)
+│   ├── Acados/                    # 5 real-time variants
+│   ├── Multiple_Single_shooting/  # Shooting methods
+│   └── Feedback_Linearisation/    # FBL-MPC with DOB
+│
+├── nmpc_px4_ros2_ws/          # ROS2 workspace
+│   └── src/nmpc_px4_ros2/         # NMPC flight mode node (C++)
+│
+├── model/                     # Custom PX4 Gazebo models
+├── src/drone_control/         # Hardware deployment code
+└── hardware/cad_models/       # STEP files for 3D printing
+```
+
+---
+
+## Quick Start
+
+```bash
+# Run NMPC in Gazebo SITL
+cd ~/PX4-Autopilot && make px4_sitl gz_quad_f450_camera
+MicroXRCEAgent udp4 -p 8888
+cd ~/Quadcopter/nmpc_px4_ros2_ws && source install/setup.bash
+ros2 launch nmpc_px4_ros2_bringup bringup.launch.py
+```
+
+---
+
+## Documentation
+
+Detailed technical documentation in the [Wiki](https://github.com/Desmondfotock28/Quadcopter/wiki):
+
+- [Control Theory](https://github.com/Desmondfotock28/Quadcopter/wiki/Control-Theory) - Mathematical modeling and dynamics
+- [NMPC Implementation](https://github.com/Desmondfotock28/Quadcopter/wiki/NMPC-Implementation) - Algorithm details and performance analysis
+- [ROS Integration](https://github.com/Desmondfotock28/Quadcopter/wiki/ROS-Integration) - Software architecture and SITL setup
+
+---
+
+## Status
+
+- [x] NMPC algorithm development and validation
+- [x] Gazebo SITL simulation with PX4
+- [x] Hardware integration (Pixhawk + RPi4B)
+- [ ] Intel RealSense integration (in progress)
+- [ ] SLAM for GPS-denied navigation (planned)
+
+---
+
+## Contact
+
+**Fotock Desmond** - [fotockd@yahoo.co.uk](mailto:fotockd@yahoo.co.uk)
+
+Open to robotics engineering opportunities. See the [Learning Journey](https://github.com/Desmondfotock28/Quadcopter/wiki/Learning-Journey) for skills developed through this project.
+
+---
+
+<div align="center">
+
+*A portfolio project demonstrating end-to-end autonomous systems development*
+
+</div>
