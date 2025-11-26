@@ -47,11 +47,21 @@ def create_ocp_solver_description() -> AcadosOcp:
     ny = nx + nu
 
     # set cost
-    W = np.diag([10.0, 10.0, 40.0,
-        2.0,  2.0,  2.0, 2.0,
-        1e-5, 1e-5, 1e-5,
-        1e-5, 1e-5, 1e-5,
-        6e-2, 6e-2, 6e-2, 6e-2])
+    #W = np.diag([10.0, 10.0, 40.0,
+       # 8.0,  8.0,  8.0, 8.0,
+        #1e-5, 1e-5, 1e-5,
+        #1e-5, 1e-5, 1e-5,
+        #6e-2, 6e-2, 6e-2, 6e-2])
+    
+    W = np.diag([
+    30.0, 30.0, 50.0,        # positions x, y, z (higher X/Y to reduce lateral deviation)
+    8.0, 8.0, 8.0, 8.0,      # quaternions q0, q1, q2, q3 (higher to limit orientation swings)
+    5.0, 5.0, 5.0,           # Linear velocities (vx,vy,vz)
+    1.0, 1.0, 1.0,           # angular rates (wx,wy,wz)
+    0.2, 0.2, 0.2, 0.2       # input forces (slightly higher to reduce aggressive thrust changes)
+])
+
+
 
 
 
@@ -97,7 +107,7 @@ def create_ocp_solver_description() -> AcadosOcp:
     return ocp
 
 starting_point = (0, 0, 3)
-radius = 5
+radius = 3
 steps = 10000
 height = 2
 length = 10

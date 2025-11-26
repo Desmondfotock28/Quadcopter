@@ -97,7 +97,7 @@ def generate_static_trajectory(starting_point, steps):
     _save('static.txt', trajectory)
 
 starting_point = (0, 0, 3)
-radius = 5        #10
+radius = 3        #10
 steps = 10000
 height = 2
 length = 10
