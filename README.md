@@ -69,7 +69,7 @@ End-to-end autonomous quadcopter development demonstrating the complete robotics
 | NMPC Solve Time | 0.48 ms |
 | Position RMSE | 0.124 m |
 | Max Tracking Error | 0.19 m |
-| Control Horizon | N = 50 |
+| Control Horizon | N = 10 |
 
 *Results from Gazebo SITL simulation with PX4. Hardware flight testing planned.*
 
