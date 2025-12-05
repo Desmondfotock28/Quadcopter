@@ -112,7 +112,8 @@ End-to-end autonomous quadcopter development demonstrating the complete robotics
 │   └── src/nmpc_px4_ros2/         # NMPC flight mode node (C++)
 │
 ├── model/                     # Custom PX4 Gazebo models
-├── src/drone_control/         # Hardware deployment code
+├── drone_control_ros2_ws      # Hardware deployment code
+    └──src/drone_control/      
 └── hardware/cad_models/       # STEP files for 3D printing
 ```
 
