@@ -22,6 +22,7 @@ from subspace_tools import (
     build_pca_projector,
     generate_nominal_input_data,
     make_reference_stack,
+    solve_nominal_ocp,
 )
 from utils import (
     plot_3d_trajectory,
@@ -285,9 +286,14 @@ def solve_active_subspace_closed_loop(
     sim_x[0, :] = xcurrent
     t0 = 0.0
 
-    # Algorithm 1, line 1: initial feasible candidate u~_0 (hover stack), and
-    # the inactive part w~_0 = T2^T u~_0  ->  inactive_stack = T2 w~_0.
-    u_tilde = np.tile(U_HOVER, N_HORIZON)
+    # Algorithm 1, line 1: solve the nominal OCP P(x0) (PDF eq. (2.3)) for the
+    # initial feasible candidate u~_0, then set w~_0 = T2^T u~_0
+    # (-> inactive_stack = T2 w~_0).  A hover stack is the IPOPT initial guess.
+    ref0 = make_reference_stack(t0, N_HORIZON, TS)
+    u_tilde = solve_nominal_ocp(
+        horizon_cost.fun, xcurrent, ref0, N_HORIZON, LB_U, UB_U,
+        u_init=np.tile(U_HOVER, N_HORIZON),
+    )
     inactive_stack = t2 @ (t2.T @ u_tilde)
 
     initialize_active_variables(solver, t1, xcurrent, u_tilde)

@@ -32,7 +32,7 @@ in `main.py:solve_active_subspace_closed_loop` (and helpers):
 | PDF (Algorithm 1)                                                                 | Code |
 |-----------------------------------------------------------------------------------|------|
 | Input `T1, T2, κ, x0`                                                              | `build_projector(...)` builds `T1, T2`; `TerminalFeedback` is `κ`; `X0_QUAD` is `x0`. |
-| Line 1: feasible init `ũ0`, `w̃0 ← T2ᵀ ũ0`                                         | `u_tilde = tile(U_HOVER)`, `inactive_stack = T2 (T2ᵀ ũ)`; `initialize_active_variables` warm-starts `v0 = T1ᵀ ũ`, `mu=1` (reconstructs `ũ`). |
+| Line 1: solve `P(x0)` for `ũ0`, `w̃0 ← T2ᵀ ũ0`                                     | `u_tilde = solve_nominal_ocp(...)` (nominal OCP eq. (2.3), IPOPT single shooting); `inactive_stack = T2 (T2ᵀ ũ)`; `initialize_active_variables` warm-starts `v0 = T1ᵀ ũ`, `mu=1` (reconstructs `ũ`). |
 | Line 2: solve `P(x_k, w̃_k)` for `(v*, mu*)`                                       | `solver.solve()`; reduced OCP defined in `Quadcopter.export_active_subspace_quadcopter_model`. |
 | Line 3: **fallback** `if J(x_k, T1v* + mu*T2w̃) ≤ J(x_k, ũ_k)`                      | `j_reduced = horizon_cost(x, U_reduced, t0)`, `j_candidate = horizon_cost(x, ũ, t0)`; `if j_reduced <= j_candidate`. |
 | Line 4: `u_k ← T1v* + mu*T2w̃`                                                     | `chosen_stack = reconstruct_input_stack(T1, v*, mu*, inactive_stack)`. |
@@ -136,26 +136,27 @@ all applied motor commands inside `[0.5, 11]`. The projector matrices satisfy
 | Metric                         | `identity` | `pca`      |
 |--------------------------------|-----------:|-----------:|
 | solver status 0                | 120 / 120  | 120 / 120  |
-| min / max motor command        | 5.65 / 10.62 | 5.59 / 9.83 |
-| mean position error (m)        | 0.175      | 0.075      |
-| max position error (m)         | 0.274      | 0.109      |
-| reduced applied (fallback)     | 34 / 120   | 60 / 120   |
-| candidate applied (fallback)   | 86 / 120   | 60 / 120   |
-| mean `J_reduced`               | 16.69      | 13.80      |
-| mean `J_candidate`             | 24.40      | 21.92      |
-| mean solve time (s)            | 0.022      | 0.055      |
+| min / max motor command        | 5.56 / 10.39 | 5.54 / 10.39 |
+| mean position error (m)        | 0.172      | 0.075      |
+| max position error (m)         | 0.251      | 0.109      |
+| reduced applied (fallback)     | 34 / 120   | 59 / 120   |
+| candidate applied (fallback)   | 86 / 120   | 61 / 120   |
+| mean `J_reduced`               | 16.66      | 13.78      |
+| mean `J_candidate`             | 16.60      | 14.15      |
+| mean solve time (s)            | 0.023      | 0.053      |
 
 The fallback rule always keeps `J(applied) ≤ J(ũ_k)` (per step
 `applied_reduced == (J_reduced ≤ J_candidate)`), which is the recursive-feasibility
-safeguard of Algorithm 1: at step 0 the reduced solution beats the poor hover
-candidate (`J ≈ 32` vs `≈ 955`), and thereafter the shifted candidate — carrying
-a fuller previous solution forward — is sometimes cheaper than the
-restricted reduced re-solve.
+safeguard of Algorithm 1. Because `ũ_0` is a genuine nominal-OCP solution
+(line 1) and is thereafter refreshed by the shifted previous solution plus the
+terminal feedback `κ`, the candidate is consistently competitive with the
+restricted reduced re-solve — so the controller picks whichever is cheaper at
+each step and never does worse than the feasible candidate.
 
 The `pca` projector captures **99.9997 %** of the optimal-input-stack energy in
 10 of 40 directions (eigenvalues decay `2078 → 31 → 7.8 → … → ~1e-13`), applies
-the reduced solution twice as often (50 % vs 28 %) and tracks ~2.3× better than
-the `identity` baseline.
+the reduced solution markedly more often (49 % vs 28 %) and tracks ~2.3× better
+than the `identity` baseline.
 
 > Generated acados code (`c_generated_code/`, `acados_*.json`), run outputs
 > (`results*/`) and `third_party/acados/` are git-ignored and not committed.
