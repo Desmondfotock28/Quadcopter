@@ -5,17 +5,40 @@ from casadi import SX, cos, reshape, sin, tan, vertcat
 NX_QUAD = 12
 NU_PHYSICAL = 4
 
+# Physical parameters (shared between prediction model, real plant and the
+# Python-side cost rollout / LQR feedback so there is a single source of truth).
+GRAVITY = 9.81
+MASS = 2.0
+THRUST_K = 9.8e-6
+ARM_LENGTH = 0.225
+DRAG_B = 1.6e-7
+IXX = 0.0035
+IYY = 0.0035
+IZZ = 0.005
+MOTOR_CM = 10000
+
+# Cost weights used by the acados EXTERNAL cost. They are exported so that the
+# Python horizon-cost evaluator (subspace_tools) reproduces J(x_k, U) exactly.
+Q_DIAG = [40, 40, 50, 5, 5, 5, 2, 2, 2, 1, 1, 1]
+R_WEIGHT = 0.1
+# Cost reference input (NOT the physical hover equilibrium, see U_EQUILIBRIUM).
+U_HOVER_COST = 5.75
+
+# Symmetric input that makes the nominal (disturbance-free) dynamics an
+# equilibrium at x = 0: (THRUST_K*MOTOR_CM/MASS) * 4 * u^2 = GRAVITY.
+U_EQUILIBRIUM = float((GRAVITY * MASS / (THRUST_K * MOTOR_CM * NU_PHYSICAL)) ** 0.5)
+
 
 def _quadcopter_dynamics(x, u, disturbance=None):
-    g = 9.81
-    m = 2.0
-    k = 9.8e-6
-    l = 0.225
-    b = 1.6e-7
-    ixx = 0.0035
-    iyy = 0.0035
-    izz = 0.005
-    cm = 10000
+    g = GRAVITY
+    m = MASS
+    k = THRUST_K
+    l = ARM_LENGTH
+    b = DRAG_B
+    ixx = IXX
+    iyy = IYY
+    izz = IZZ
+    cm = MOTOR_CM
 
     thrust_sum = u[0] ** 2 + u[1] ** 2 + u[2] ** 2 + u[3] ** 2
 
@@ -38,6 +61,15 @@ def _quadcopter_dynamics(x, u, disturbance=None):
         dx8 += disturbance[2]
 
     return vertcat(dx0, dx1, dx2, dx3, dx4, dx5, dx6, dx7, dx8, dx9, dx10, dx11)
+
+
+def quadcopter_continuous_dynamics(x, u):
+    """Public, disturbance-free continuous dynamics f(x, u).
+
+    Used by the prediction model and by the Python-side horizon-cost rollout /
+    LQR feedback so they all share the exact same nominal model.
+    """
+    return _quadcopter_dynamics(x, u, disturbance=None)
 
 
 def export_active_subspace_quadcopter_model(nv_active: int) -> AcadosModel:
@@ -77,12 +109,11 @@ def export_active_subspace_quadcopter_model(nv_active: int) -> AcadosModel:
     f_impl = xdot - f_expl
 
     q_mat = SX.zeros(NX_QUAD, NX_QUAD)
-    q_diag = [40, 40, 50, 5, 5, 5, 2, 2, 2, 1, 1, 1]
-    for i, weight in enumerate(q_diag):
+    for i, weight in enumerate(Q_DIAG):
         q_mat[i, i] = weight
 
-    r_mat = 0.1 * SX.eye(NU_PHYSICAL)
-    u_hover = vertcat(5.75, 5.75, 5.75, 5.75)
+    r_mat = R_WEIGHT * SX.eye(NU_PHYSICAL)
+    u_hover = vertcat(*([U_HOVER_COST] * NU_PHYSICAL))
     tracking_error = x_quad - ref
     input_error = u_real - u_hover
 

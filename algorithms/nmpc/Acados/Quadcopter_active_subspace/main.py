@@ -1,14 +1,29 @@
 from acados_template import AcadosOcp, AcadosOcpSolver, AcadosSim, AcadosSimSolver
-from scipy.linalg import null_space
 import argparse
 import json
 import numpy as np
 from pathlib import Path
 import time
 
-from Quadcopter import NX_QUAD, NU_PHYSICAL, export_active_subspace_quadcopter_model, export_quadcopter_realplant_model
+import casadi as ca
+
+from Quadcopter import (
+    NX_QUAD,
+    NU_PHYSICAL,
+    U_EQUILIBRIUM,
+    export_active_subspace_quadcopter_model,
+    export_quadcopter_realplant_model,
+)
+from subspace_tools import (
+    HorizonCost,
+    TerminalFeedback,
+    build_hessian_projector,
+    build_identity_projector,
+    build_pca_projector,
+    generate_nominal_input_data,
+    make_reference_stack,
+)
 from utils import (
-    generate_block_identity,
     plot_3d_trajectory,
     plot_xyz_subplots,
     reconstruct_input_stack,
@@ -30,12 +45,46 @@ U_HOVER = np.array([5.75, 5.75, 5.75, 5.75])
 LB_U = np.array([0.5, 0.5, 0.5, 0.5])
 UB_U = np.array([11.0, 11.0, 11.0, 11.0])
 
-T1 = generate_block_identity(N_STACKED_U, NV_ACTIVE)
-T2 = null_space(T1.T)
+
+def build_projector(kind, horizon_cost, n_samples=24, seed=0):
+    """Construct (T1, T2, diagnostics) for the requested projector.
+
+    * ``identity``: first NV_ACTIVE canonical directions of the stacked input.
+    * ``pca``:      eigenvectors of the covariance C of optimal nominal input
+                    stacks U*(x) over sampled initial conditions (PDF (2.10)).
+    * ``hessian``:  leading eigenvectors of the cost Hessian d^2 J / dU^2.
+    """
+    if kind == "identity":
+        return build_identity_projector(N_STACKED_U, NV_ACTIVE)
+
+    if kind == "pca":
+        u_init = np.full(N_STACKED_U, U_EQUILIBRIUM)
+        feats = generate_nominal_input_data(
+            horizon_cost.fun,
+            X0_QUAD,
+            N_HORIZON,
+            TS,
+            LB_U,
+            UB_U,
+            u_init,
+            n_samples=n_samples,
+            seed=seed,
+        )
+        return build_pca_projector(N_STACKED_U, NV_ACTIVE, feats)
+
+    if kind == "hessian":
+        ref0 = make_reference_stack(0.0, N_HORIZON, TS)
+        u_sym = ca.SX.sym("U", N_STACKED_U)
+        cost = horizon_cost.fun(ca.DM(X0_QUAD), u_sym, ca.DM(ref0))
+        hess_fun = ca.Function("H", [u_sym], [ca.hessian(cost, u_sym)[0]])
+        hessian = np.array(hess_fun(np.full(N_STACKED_U, U_EQUILIBRIUM)))
+        return build_hessian_projector(N_STACKED_U, NV_ACTIVE, hessian)
+
+    raise ValueError(f"unknown projector '{kind}'")
 
 
-def make_stage_parameter(stage, t0, inactive_stack):
-    t1_stage = split_stage_matrix(T1, stage, NU_PHYSICAL)
+def make_stage_parameter(t1, stage, t0, inactive_stack):
+    t1_stage = split_stage_matrix(t1, stage, NU_PHYSICAL)
     inactive_stage = split_stage_vector(inactive_stack, stage, NU_PHYSICAL)
     return np.concatenate(
         (
@@ -100,8 +149,11 @@ def create_sim_solver_description() -> AcadosSim:
     return sim
 
 
-def initialize_active_variables(solver, xcurrent, inactive_stack):
-    v0 = T1.T @ inactive_stack
+def initialize_active_variables(solver, t1, xcurrent, u_tilde):
+    # Warm start: v0 = T1^T u~ with mu = 1 reconstructs the full feasible
+    # candidate, since T1 T1^T u~ + mu T2 T2^T u~ = u~. This is a feasible guess
+    # for any (dense) projector, unlike v0 = 0.
+    v0 = t1.T @ u_tilde
     x_aug = np.zeros(NX_QUAD + NV_ACTIVE + 1)
     x_aug[:NX_QUAD] = xcurrent
     x_aug[NX_QUAD:NX_QUAD + NV_ACTIVE] = v0
@@ -123,19 +175,27 @@ def make_terminal_parameter(t0):
     )
 
 
-def set_stage_parameters(solver, t0, inactive_stack):
+def set_stage_parameters(solver, t1, t0, inactive_stack):
     for stage in range(N_HORIZON):
-        solver.set(stage, "p", make_stage_parameter(stage, t0, inactive_stack))
+        solver.set(stage, "p", make_stage_parameter(t1, stage, t0, inactive_stack))
     solver.set(N_HORIZON, "p", make_terminal_parameter(t0))
 
 
-def compute_metrics(t, sim_x, sim_u, solve_times, solver_statuses):
+def compute_metrics(t, sim_x, sim_u, solve_times, solver_statuses, fallback_log, projector_diag):
     refs = np.array([reference_trajectory(ti) for ti in t])
     pos_error = sim_x[:, :3] - refs[:, :3]
     pos_error_norm = np.linalg.norm(pos_error, axis=1)
     status_values, status_counts = np.unique(solver_statuses, return_counts=True)
     status_count_map = {str(int(status)): int(count) for status, count in zip(status_values, status_counts)}
+
+    applied_reduced = np.asarray(fallback_log["applied_reduced"], dtype=bool)
+    j_reduced = np.asarray(fallback_log["j_reduced"], dtype=float)
+    j_candidate = np.asarray(fallback_log["j_candidate"], dtype=float)
+    n_reduced = int(applied_reduced.sum())
+    n_fallback = int((~applied_reduced).sum())
+
     return {
+        "projector": projector_diag["projector"],
         "nsim": int(sim_u.shape[0]),
         "horizon_steps": int(N_HORIZON),
         "horizon_seconds": float(T_HORIZON),
@@ -150,10 +210,19 @@ def compute_metrics(t, sim_x, sim_u, solve_times, solver_statuses):
         "min_motor_command": float(np.min(sim_u)),
         "max_motor_command": float(np.max(sim_u)),
         "solver_status_counts": status_count_map,
+        "fallback": {
+            "reduced_applied": n_reduced,
+            "candidate_applied": n_fallback,
+            "reduced_fraction": float(n_reduced / sim_u.shape[0]),
+            "mean_j_reduced": float(np.mean(j_reduced)),
+            "mean_j_candidate": float(np.mean(j_candidate)),
+            "mean_j_gap_candidate_minus_reduced": float(np.mean(j_candidate - j_reduced)),
+        },
+        "projector_diagnostics": projector_diag,
     }
 
 
-def save_results(output_dir, t, sim_x, sim_u, solve_times, solver_statuses, metrics, make_plots=True):
+def save_results(output_dir, t, sim_x, sim_u, solve_times, solver_statuses, fallback_log, metrics, projector_diag, make_plots=True):
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -164,16 +233,42 @@ def save_results(output_dir, t, sim_x, sim_u, solve_times, solver_statuses, metr
         sim_u=sim_u,
         solve_times=solve_times,
         solver_statuses=solver_statuses,
+        j_reduced=np.asarray(fallback_log["j_reduced"], dtype=float),
+        j_candidate=np.asarray(fallback_log["j_candidate"], dtype=float),
+        applied_reduced=np.asarray(fallback_log["applied_reduced"], dtype=bool),
     )
     with open(output_dir / "metrics.json", "w", encoding="utf-8") as metrics_file:
         json.dump(metrics, metrics_file, indent=2)
+    with open(output_dir / "projector_info.json", "w", encoding="utf-8") as proj_file:
+        json.dump(projector_diag, proj_file, indent=2)
 
     if make_plots:
         plot_3d_trajectory(t, sim_x, output_path=output_dir / "trajectory_3d.png", show=False)
         plot_xyz_subplots(t, sim_x, output_path=output_dir / "position_tracking.png", show=False)
 
 
-def solve_active_subspace_closed_loop(nsim=120, output_dir="results", make_plots=True):
+def solve_active_subspace_closed_loop(
+    nsim=120,
+    output_dir="results",
+    projector="identity",
+    pca_samples=24,
+    seed=0,
+    make_plots=True,
+):
+    # Horizon-cost evaluator J(x_k, U) -- backs both the fallback rule and the
+    # data/curvature based projector construction.
+    horizon_cost = HorizonCost(N_HORIZON, TS)
+    terminal_feedback = TerminalFeedback(TS, LB_U, UB_U)
+
+    t1, t2, projector_diag = build_projector(
+        projector, horizon_cost, n_samples=pca_samples, seed=seed
+    )
+    print(
+        f"[projector={projector}] T1{t1.shape}  T1^T T1 - I = "
+        f"{projector_diag['orthonormality_residual_T1tT1_minus_I']:.2e}  "
+        f"T1^T T2 = {projector_diag['complement_residual_T1tT2']:.2e}"
+    )
+
     ocp = create_ocp_solver_description()
     solver = AcadosOcpSolver(ocp, json_file="acados_ocp_" + ocp.model.name + ".json")
 
@@ -184,20 +279,24 @@ def solve_active_subspace_closed_loop(nsim=120, output_dir="results", make_plots
     sim_u = np.zeros((nsim, NU_PHYSICAL))
     solve_times = []
     solver_statuses = []
+    fallback_log = {"j_reduced": [], "j_candidate": [], "applied_reduced": []}
 
     xcurrent = X0_QUAD.copy()
     sim_x[0, :] = xcurrent
     t0 = 0.0
 
+    # Algorithm 1, line 1: initial feasible candidate u~_0 (hover stack), and
+    # the inactive part w~_0 = T2^T u~_0  ->  inactive_stack = T2 w~_0.
     u_tilde = np.tile(U_HOVER, N_HORIZON)
-    inactive_stack = T2 @ (T2.T @ u_tilde)
+    inactive_stack = t2 @ (t2.T @ u_tilde)
 
-    initialize_active_variables(solver, xcurrent, inactive_stack)
+    initialize_active_variables(solver, t1, xcurrent, u_tilde)
 
     for i in range(nsim):
+        # Algorithm 1, line 2: solve the reduced OCP P(x_k, w~_k) for (v*, mu*).
         solver.set(0, "lbx", xcurrent)
         solver.set(0, "ubx", xcurrent)
-        set_stage_parameters(solver, t0, inactive_stack)
+        set_stage_parameters(solver, t1, t0, inactive_stack)
 
         start_time = time.time()
         status = solver.solve()
@@ -211,10 +310,30 @@ def solve_active_subspace_closed_loop(nsim=120, output_dir="results", make_plots
         x_aug0 = solver.get(0, "x")
         v_active = x_aug0[NX_QUAD:NX_QUAD + NV_ACTIVE]
         mu = x_aug0[NX_QUAD + NV_ACTIVE]
-        u_stack = reconstruct_input_stack(T1, v_active, mu, inactive_stack)
-        u0 = np.clip(split_stage_vector(u_stack, 0, NU_PHYSICAL), LB_U, UB_U)
 
+        # Reconstruct the reduced stacked input  U = T1 v* + mu* T2 w~.
+        u_reduced_stack = reconstruct_input_stack(t1, v_active, mu, inactive_stack)
+
+        # Algorithm 1, line 3: fallback rule -- compare exact costs of the
+        # reduced solution and of the shifted candidate u~_k.
+        j_reduced = horizon_cost(xcurrent, u_reduced_stack, t0)
+        j_candidate = horizon_cost(xcurrent, u_tilde, t0)
+
+        if j_reduced <= j_candidate:           # line 4: apply reduced input
+            chosen_stack = u_reduced_stack
+            applied_reduced = True
+        else:                                  # line 6: fall back to u~_k
+            chosen_stack = u_tilde
+            applied_reduced = False
+
+        fallback_log["j_reduced"].append(j_reduced)
+        fallback_log["j_candidate"].append(j_candidate)
+        fallback_log["applied_reduced"].append(applied_reduced)
+
+        # Algorithm 1, line 8: apply the first input of the chosen sequence.
+        u0 = np.clip(split_stage_vector(chosen_stack, 0, NU_PHYSICAL), LB_U, UB_U)
         sim_u[i, :] = u0
+
         integrator.set("x", xcurrent)
         integrator.set("u", u0)
         sim_status = integrator.solve()
@@ -224,16 +343,23 @@ def solve_active_subspace_closed_loop(nsim=120, output_dir="results", make_plots
         xcurrent = integrator.get("x")
         sim_x[i + 1, :] = xcurrent
 
-        terminal_u = U_HOVER
-        u_tilde = shift_input_stack(u_stack, terminal_u, NU_PHYSICAL)
-        inactive_stack = T2 @ (T2.T @ u_tilde)
+        # Algorithm 1, line 9: shift the chosen sequence and append the terminal
+        # state-feedback kappa(x_{k+N-1|k-1}) evaluated at the predicted terminal
+        # state, then update w~_k = T2^T u~_k.
+        x_terminal = solver.get(N_HORIZON, "x")[:NX_QUAD]
+        x_ref_terminal = reference_trajectory(t0 + N_HORIZON * TS)
+        terminal_u = terminal_feedback(x_terminal, x_ref_terminal)
+        u_tilde = shift_input_stack(chosen_stack, terminal_u, NU_PHYSICAL)
+        inactive_stack = t2 @ (t2.T @ u_tilde)
         t0 += TS
 
     t = np.arange(nsim + 1) * TS
     solve_times = np.array(solve_times)
     solver_statuses = np.array(solver_statuses)
-    metrics = compute_metrics(t, sim_x, sim_u, solve_times, solver_statuses)
-    save_results(output_dir, t, sim_x, sim_u, solve_times, solver_statuses, metrics, make_plots=make_plots)
+    metrics = compute_metrics(t, sim_x, sim_u, solve_times, solver_statuses, fallback_log, projector_diag)
+    save_results(
+        output_dir, t, sim_x, sim_u, solve_times, solver_statuses, fallback_log, metrics, projector_diag, make_plots=make_plots
+    )
     print(json.dumps(metrics, indent=2))
 
     return sim_x, sim_u, solve_times, metrics
@@ -243,11 +369,17 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run acados active-subspace quadcopter NMPC.")
     parser.add_argument("--nsim", type=int, default=120)
     parser.add_argument("--output-dir", default="results")
+    parser.add_argument("--projector", choices=["identity", "pca", "hessian"], default="identity")
+    parser.add_argument("--pca-samples", type=int, default=24, help="Initial-condition samples for the PCA covariance.")
+    parser.add_argument("--seed", type=int, default=0, help="Seed for PCA initial-condition sampling.")
     parser.add_argument("--no-plots", action="store_true")
     args = parser.parse_args()
 
     solve_active_subspace_closed_loop(
         nsim=args.nsim,
         output_dir=args.output_dir,
+        projector=args.projector,
+        pca_samples=args.pca_samples,
+        seed=args.seed,
         make_plots=not args.no_plots,
     )
