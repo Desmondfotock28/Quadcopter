@@ -2,7 +2,7 @@ from acados_template import AcadosSim, AcadosOcp, AcadosOcpSolver, AcadosSimSolv
 from Quadcopter import export_Quadcopter_ode_model
 import numpy as np
 import time
-from utils import generate_spiral_trajectory_two, plot_3d_trajectory_test
+from utils import generate_spiral_trajectory_two, plot_3d_trajectory_test, plot_xyz_subplots
 
 
 
@@ -177,7 +177,7 @@ def closed_loop_simulation():
       # create an integrator with the same settings as used in the OCP solver.
     acados_integrator = AcadosSimSolver(ocp, json_file = 'acados_sim_' + ocp.model.name + '.json')
    
-    Nsim = 401
+    Nsim = 400
 
     nx = ocp.model.x.size()[0]
     nu = ocp.model.u.size()[0]
@@ -259,6 +259,8 @@ def closed_loop_simulation():
     solve_time_total = np.array(solve_time_total)
 
     plot_3d_trajectory_test(simX, ref_traj)
+
+    plot_xyz_subplots(simX, ref_traj)
 
     print(np.mean(solve_time_total))
 

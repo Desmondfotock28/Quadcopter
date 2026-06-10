@@ -49,94 +49,56 @@ def plot_3d_trajectory(t , x_pred):
     # Show the plot
     plt.show()
 
-def plot_xyz_subplots(t, x_pred):
+
+
+def plot_xyz_subplots(simX, ref_traj):
     """
-    Plot distances in X, Y, and Z as three separate subplots.
+    Plot X, Y, Z states vs reference trajectory (no time axis).
 
     Parameters:
-    t (array-like): Time steps
-    x_pred (numpy.ndarray): Predicted positions as an (N,3) array [x, y, z]
-
-    Returns:
-    None
+    simX (array-like): predicted states (N, >=3)
+    ref_traj (array-like): reference trajectory (N, >=3)
     """
-    # Extract x, y, z values
-    x_vals = x_pred[:, 0]
-    y_vals = x_pred[:, 1]
-    z_vals = x_pred[:, 2]
 
-    # Reference trajectory (example)
-    t = np.array(t)
-    xr = np.sin(np.pi * t / 10)
-    yr = np.cos(np.pi * t / 10) - 1.0
-    zr = np.sin(np.pi * t / 10) + t + 1
+    # Extract predicted states
+    x_vals = simX[:, 0]
+    y_vals = simX[:, 1]
+    z_vals = simX[:, 2]
 
-    #xr = 0.5 + 0.2* np.cos(t)
-    #yr = 0.5 + 0.2*np.sin(t) 
-    #zr = 1.1 + 0.1*t
+    # Extract reference states
+    ref_x = ref_traj[:, 0]
+    ref_y = ref_traj[:, 1]
+    ref_z = ref_traj[:, 2]
 
-    # Create subplots
+    # Create index axis (since no time)
+    idx = range(len(x_vals))
+
     fig, axs = plt.subplots(3, 1, figsize=(8, 10), sharex=True)
 
-    # Plot X
-    axs[0].plot(t, x_vals, label="Predicted X", color='b')
-    axs[0].plot(t, xr, label="Reference X", color='r', linestyle='--')
+    # X plot
+    axs[0].plot(idx, x_vals, label="Predicted X", color='b')
+    axs[0].plot(idx, ref_x, label="Reference X", color='r', linestyle='--')
     axs[0].set_ylabel("X")
     axs[0].legend()
     axs[0].grid(True)
 
-    # Plot Y
-    axs[1].plot(t, y_vals, label="Predicted Y", color='b')
-    axs[1].plot(t, yr, label="Reference Y", color='r', linestyle='--')
+    # Y plot
+    axs[1].plot(idx, y_vals, label="Predicted Y", color='b')
+    axs[1].plot(idx, ref_y, label="Reference Y", color='r', linestyle='--')
     axs[1].set_ylabel("Y")
     axs[1].legend()
     axs[1].grid(True)
 
-    # Plot Z
-    axs[2].plot(t, z_vals, label="Predicted Z", color='b')
-    axs[2].plot(t, zr, label="Reference Z", color='r', linestyle='--')
+    # Z plot
+    axs[2].plot(idx, z_vals, label="Predicted Z", color='b')
+    axs[2].plot(idx, ref_z, label="Reference Z", color='r', linestyle='--')
     axs[2].set_ylabel("Z")
-    axs[2].set_xlabel("Time")
+    axs[2].set_xlabel("Step")
     axs[2].legend()
     axs[2].grid(True)
 
     plt.tight_layout()
     plt.show()
-
-def plot_motor_voltages(t, voltages):
-    """
-    Plot voltage drawn by each motor over time.
-
-    Parameters:
-    t : array-like
-        Time vector (length N)
-    voltages : numpy.ndarray
-        Voltage values of shape (N, 4), each column corresponds to a motor [v1, v2, v3, v4]
-    
-    Returns:
-    None
-    """
-    t = np.array(t)
-    voltages = np.array(voltages)
-
-    plt.figure(figsize=(10, 6))
-    
-    # Plot each motor voltage
-    plt.plot(t, voltages[:, 0], label='Motor 1', linestyle='-', marker='o', markersize=4)
-    plt.plot(t, voltages[:, 1], label='Motor 2', linestyle='--', marker='s', markersize=4)
-    plt.plot(t, voltages[:, 2], label='Motor 3', linestyle='-.', marker='^', markersize=4)
-    plt.plot(t, voltages[:, 3], label='Motor 4', linestyle=':', marker='d', markersize=4)
-    
-    plt.xlabel('Time [s]')
-    plt.ylabel('Voltage [V]')
-    plt.title('Motor Voltages over Time')
-    plt.grid(True)
-    plt.legend()
-    plt.tight_layout()
-    plt.show()
-
-
-
 
 def _save(filename, trajectory):
     # Get the current script directory
