@@ -1,4 +1,4 @@
-from acados_template import AcadosSim, AcadosOcp, AcadosOcpSolver, AcadosSimSolver
+from acados_template import AcadosOcp, AcadosOcpSolver, AcadosSimSolver
 from Quadcopter import export_Quadcopter_ode_model
 import numpy as np
 import time
@@ -106,6 +106,8 @@ generate_spiral_trajectory_two(starting_point, radius, steps)
 
 ref_traj = np.loadtxt("algorithms/nmpc/Acados/Quadcopter_nmpc_quaternions/spiral2.txt")
 
+print(ref_traj.shape)
+
 def solve_single_ocp():
      
     t0 = 0.0
@@ -160,11 +162,15 @@ def solve_single_ocp():
         simU[i,:] = acados_ocp_solver.get(i, "u")
     simX[N_horizon,:] = acados_ocp_solver.get(N_horizon, "x")
 
-    plot_3d_trajectory_test(np.linspace(0, T_horizon, N_horizon+1),simX)
+    # Save open-loop controls
+    
+    np.save("open_loop_controls.npy", simU)
+
+    #plot_3d_trajectory_test(np.linspace(0, T_horizon, N_horizon+1),simX)   #fixed this issue 
     
     print(solver_time)
 
-#solve_single_ocp()
+solve_single_ocp()
 
 
 
@@ -263,7 +269,6 @@ def closed_loop_simulation():
     print(np.mean(solve_time_total))
 
 closed_loop_simulation()
-
 
 
 
