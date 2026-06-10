@@ -1,29 +1,46 @@
-from acados_template import AcadosSim, AcadosOcp, AcadosOcpSolver, AcadosSimSolver
-from FBL_Quadcopter import export_feedback_lineraise_Quadcopter_ode_model,export_quadcopter_realplant_model
+from acados_template import AcadosOcp, AcadosOcpSolver, AcadosSimSolver
+from FBL_Quadcopter import export_feedback_lineraise_Quadcopter_ode_model
 import numpy as np
 import time
 import scipy.linalg
-from control import dare
-from utils import plot_3d_trajectory, plot_xyz_subplots, reference_state, get_continous_time_matrices
+from utils import generate_spiral_trajectory_two, plot_3d_trajectory_test
 
 
-w0 = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0,0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+w0 = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0,0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0])
 
 nw = w0.shape[0]
 
 N_horizon = 10
 T_horizon = 1.0
+
 Ts = T_horizon /N_horizon
 
+m = 2.0
+
+g = 9.8066 
+
+thrust_to_weight = 1.75
+
+max_force_per_motor = (g * m / 4.0) * thrust_to_weight
+
+
+#Real controls input bounds 
+u_min = np.array([0.0, 0.0, 0.0, 0.0])
+
+u_max = np.array([max_force_per_motor, max_force_per_motor, max_force_per_motor, max_force_per_motor])
+
+u_hov = np.array([m*g/4.0, m*g/4.0, m*g/4.0, m*g/4.0])
 
 
 # Input bounds for v (virtual controls)
-lb_v = np.array([ -537,  -537,  -537, -1675])
 
-ub_v = np.array([537, 537 , 537, 1675 ])
+lb_v = np.array([-390.0, -390.0, -330.0, -1200.0])
+
+ub_v = np.array([390.0, 390.0, 330.0, 1200.0])
+
+v_hov = np.array([222.0, 222.0, 187.0, 689.0])
 
 nv = lb_v.shape[0]
-
 
 
 def create_ocp_solver_description() -> AcadosOcp:
@@ -83,14 +100,14 @@ def create_ocp_solver_description() -> AcadosOcp:
     ocp.cost.W = W_stage
     ocp.cost.Vx = Vx
     ocp.cost.Vu = Vu
-    ocp.cost.yref = np.zeros(nw + nv)
+    ocp.cost.yref = np.concatenate((w0, v_hov))
 
 
      # terminal cost on w only:
     ocp.cost.cost_type_e = 'LINEAR_LS'
     ocp.cost.W_e = 10*Q_w
     ocp.cost.Vx_e =   np.eye(nw)
-    ocp.cost.yref_e = np.zeros(nw)
+    ocp.cost.yref_e = w0
 
 
      # constraints: set bounds on v idxbu
@@ -116,21 +133,6 @@ def create_ocp_solver_description() -> AcadosOcp:
 
     return ocp
 
-def create_sim_solver_description() -> AcadosSim:
-    # export the real plant dynamics
-    realplant_model = export_quadcopter_realplant_model()
-
-    # sim description
-    sim = AcadosSim()
-    sim.model = realplant_model
-    sim.solver_options.integrator_type = 'ERK'    # explicit Runge-Kutta, or 'IRK'
-    sim.solver_options.T = Ts 
-    sim.solver_options.num_stages = 1
-    sim.solver_options.num_steps = 1
-    return sim
-
-
-
 
 def solve_single_ocp():
 
@@ -146,8 +148,13 @@ def solve_single_ocp():
     simV = np.ndarray((N_horizon, nv))
       
     for k in range(N_horizon):
-        acados_ocp_solver.set(k, "yref", reference_state(t0 + k*Ts, ny))
-    acados_ocp_solver.set(N_horizon, "yref", reference_state(t0 + T_horizon, nw))  # only states at terminal
+            traj_index = int((t0 / Ts) + k)
+            traj_index = min(traj_index, len(ref_traj) - 1)  # prevent out of bounds
+            acados_ocp_solver.set(k, "yref", ref_traj[traj_index, :nw+nv])
+
+    traj_index = int((t0 / Ts) + N_horizon)
+    traj_index = min(traj_index, len(ref_traj) - 1)
+    acados_ocp_solver.set(N_horizon, "yref", ref_traj[traj_index, :nw])  # only states at terminal
 
     start_time = time.time()
     status = acados_ocp_solver.solve()
@@ -164,11 +171,21 @@ def solve_single_ocp():
         simV[i,:] = acados_ocp_solver.get(i, "u")
     simW[N_horizon,:] = acados_ocp_solver.get(N_horizon, "x")
 
-    plot_3d_trajectory(np.linspace(0, T_horizon, N_horizon+1),simW)
+    plot_3d_trajectory_test(simW, ref_traj)
 
     print(solver_time)
 
 
+starting_point = (0, 0, 0)
+radius = 1
+steps = 401
+height = 2
+
+generate_spiral_trajectory_two(starting_point, radius, steps)
+
+ref_traj = np.loadtxt("algorithms/nmpc/Acados/FBL_Quadcopter/spiral2.txt")
+
+print(ref_traj.shape)
 
 def closed_loop_simulation():
 
@@ -176,11 +193,10 @@ def closed_loop_simulation():
 
     acados_ocp_solver = AcadosOcpSolver(ocp, json_file = 'acados_ocp_' + ocp.model.name + '.json')
 
-    sim = create_sim_solver_description()
-      # create an integrator with the same settings as used in the OCP solver.
-    acados_integrator = AcadosSimSolver(sim, json_file = 'acados_sim_' + sim.model.name + '.json')
-   
-    Nsim = 400
+         # create an integrator with the same settings as used in the OCP solver.
+    acados_integrator = AcadosSimSolver(ocp, json_file = 'acados_sim_' + ocp.model.name + '.json')
+
+    Nsim = 401
 
     nw = ocp.model.x.size()[0]
     nv = ocp.model.u.size()[0]
@@ -197,8 +213,8 @@ def closed_loop_simulation():
     for stage in range(N_horizon+1):
         acados_ocp_solver.set(stage, 'x', wcurrent)
 
-    #for stage in range(N_horizon):
-        #acados_ocp_solver.set(stage, 'u', np.array([537, 537 , 537, 1675]))
+    for stage in range(N_horizon):
+        acados_ocp_solver.set(stage, 'u', ub_v)
 
     # closed loop
     for i in range(Nsim):
@@ -207,14 +223,18 @@ def closed_loop_simulation():
         acados_ocp_solver.set(0, "lbx", wcurrent)
         acados_ocp_solver.set(0, "ubx", wcurrent)
 
-        # set reference trajectory 
+
+       # set reference trajectory 
 
         for k in range(N_horizon):
-           
-            acados_ocp_solver.set(k, "yref", reference_state(t0 + k*Ts, ny) )
-        acados_ocp_solver.set(N_horizon, "yref", reference_state(t0 + N_horizon*Ts, nw))  # only states at terminal
-      
-        # solve ocp
+            traj_index = int((t0 / Ts) + k)
+            traj_index = min(traj_index, len(ref_traj) - 1)  # prevent out of bounds
+            acados_ocp_solver.set(k, "yref", ref_traj[traj_index, :nw+nv])
+
+        traj_index = int((t0 / Ts) + N_horizon)
+        traj_index = min(traj_index, len(ref_traj) - 1)
+        acados_ocp_solver.set(N_horizon, "yref", ref_traj[traj_index, :nw])  # only states at terminal
+            # solve ocp
         status = acados_ocp_solver.solve()
 
         if status not in [0, 2]:
@@ -246,7 +266,8 @@ def closed_loop_simulation():
 
 
     # plot results
-    plot_3d_trajectory(t, simW)
-    plot_xyz_subplots(t, simW)
+    plot_3d_trajectory_test(simW, ref_traj)
+    
+    #plot_xyz_subplots(t, simW)
 
 closed_loop_simulation()
