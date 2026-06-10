@@ -125,7 +125,7 @@ def export_active_subspace_quadcopter_model(nv_active: int) -> AcadosModel:
     model.u = u_dummy
     model.p = p
     model.con_h_expr = u_real
-    model.cost_expr_ext_cost = 0.5 * (tracking_error.T @ q_mat @ tracking_error + input_error.T @ r_mat @ input_error + 1e-3 * (mu - 1) ** 2)
+    model.cost_expr_ext_cost = 0.5 * (tracking_error.T @ q_mat @ tracking_error + input_error.T @ r_mat @ input_error )  #+ 1e-3 * (mu - 1) ** 2
     model.cost_expr_ext_cost_e = tracking_error.T @ q_mat @ tracking_error
     model.name = model_name
 

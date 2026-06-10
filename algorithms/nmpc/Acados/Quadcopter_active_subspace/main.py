@@ -38,7 +38,7 @@ from utils import (
 N_HORIZON = 10
 T_HORIZON = 1.0
 TS = T_HORIZON / N_HORIZON
-NV_ACTIVE = 10
+NV_ACTIVE = 3
 N_STACKED_U = N_HORIZON * NU_PHYSICAL
 
 X0_QUAD = np.zeros(NX_QUAD)
@@ -120,12 +120,12 @@ def create_ocp_solver_description() -> AcadosOcp:
     ocp.constraints.lh = LB_U
     ocp.constraints.uh = UB_U
 
-    ocp.constraints.idxbx = np.array([mu_idx])
-    ocp.constraints.lbx = np.array([0.0])
-    ocp.constraints.ubx = np.array([1.5])
-    ocp.constraints.idxbx_e = np.array([mu_idx])
-    ocp.constraints.lbx_e = np.array([0.0])
-    ocp.constraints.ubx_e = np.array([1.5])
+    #ocp.constraints.idxbx = np.array([mu_idx])
+    #ocp.constraints.lbx = np.array([0.0])
+    #ocp.constraints.ubx = np.array([1.5])
+    #ocp.constraints.idxbx_e = np.array([mu_idx])
+    #ocp.constraints.lbx_e = np.array([0.0])
+    #ocp.constraints.ubx_e = np.array([1.5])
 
     ocp.solver_options.qp_solver = "PARTIAL_CONDENSING_HPIPM"
     ocp.solver_options.hessian_approx = "GAUSS_NEWTON"
@@ -249,7 +249,7 @@ def save_results(output_dir, t, sim_x, sim_u, solve_times, solver_statuses, fall
 
 
 def solve_active_subspace_closed_loop(
-    nsim=120,
+    nsim=401,
     output_dir="results",
     projector="identity",
     pca_samples=24,
@@ -373,7 +373,7 @@ def solve_active_subspace_closed_loop(
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run acados active-subspace quadcopter NMPC.")
-    parser.add_argument("--nsim", type=int, default=120)
+    parser.add_argument("--nsim", type=int, default=400)
     parser.add_argument("--output-dir", default="results")
     parser.add_argument("--projector", choices=["identity", "pca", "hessian"], default="identity")
     parser.add_argument("--pca-samples", type=int, default=24, help="Initial-condition samples for the PCA covariance.")

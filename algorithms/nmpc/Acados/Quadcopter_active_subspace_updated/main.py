@@ -1,5 +1,5 @@
 from acados_template import AcadosOcp, AcadosOcpSolver, AcadosSimSolver , AcadosSim
-from Quadcopter import export_active_subspace_quadcopter_model, export_Quadcopter_ode_model
+from Quadcopter import export_active_subspace_quadcopter_model, export_Quadcopter_ode_model,quadcopter_dynamics
 from scipy.linalg import null_space
 import numpy as np
 
@@ -9,7 +9,8 @@ from utils import generate_block_identity,split_stage_matrix,reference_trajector
 
 
 
-
+k_T = 9.8e-6
+cm = 1000
 nu_phy = 4
 
 nx = 13
@@ -39,6 +40,7 @@ u_max = np.array([max_force_per_motor, max_force_per_motor, max_force_per_motor,
 
 u_hover = np.array([m*g/4.0, m*g/4.0, m*g/4.0, m*g/4.0])
 
+U_EQUILIBRIUM = float((g *m / (k_T*cm*nu_phy)) ** 0.5)
 
 def make_stage_parameter(t1, stage, t0, inactive_stack):
     t1_stage = split_stage_matrix(t1, stage, nu_phy)
@@ -56,7 +58,6 @@ def set_stage_parameters(solver, T1, t0, inactive_stack):
     for stage in range(N_horizon):
         solver.set(stage, "p", make_stage_parameter(T1, stage, t0, inactive_stack))
     solver.set(N_horizon, "p", make_terminal_parameter(t0))
-
 
 
 def create_ocp_solver_description() -> AcadosOcp:
