@@ -24,8 +24,8 @@ Thumbs.db
 *.tmp
 *.bak
 *.orig
-# Local third-party solver builds
-third_party/acados/
+
+
 
 # acados generated code and run outputs
 algorithms/nmpc/Acados/*/c_generated_code/
@@ -33,3 +33,16 @@ algorithms/nmpc/Acados/*/acados_ocp_*.json
 algorithms/nmpc/Acados/*/acados_sim_*.json
 algorithms/nmpc/Acados/*/results/
 algorithms/nmpc/Acados/*/results_*/
+
+# Local virtual environments
+/.venv-acados/
+/.venv-manim/
+
+# Vendored third-party solver sources (clone via README instructions)
+/third_party/
+
+# manim render output (linkedin_series)
+/media/
+
+# Personal manim content (local only)
+/linkedin_series/
