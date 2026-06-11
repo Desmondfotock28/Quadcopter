@@ -1,4 +1,3 @@
-from acados_template import AcadosModel
 from casadi import  SX, vertcat, horzcat, reshape
 
 
@@ -13,7 +12,13 @@ nu_phy= 4
 m = 2.0                                     # [kg] total mass
 g = 9.8066                                  # [m/s^2] Gravity   
 jx, jy, jz = 0.0035, 0.0035, 0.005         # [kg.m^2] Inertia moment
-cd  = 1.6e-7                               # Rotor drag coef
+# Yaw torque per unit thrust [N.m/N]. The mixer below works with motor FORCES,
+# so this must be the torque-to-thrust ratio (Gazebo's momentConstant), not a
+# rotor-speed-squared drag coefficient. Value matches this repo's F450 model
+# (model/quad_f450_camera/model.sdf: momentConstant = 0.017); PX4's stock iris
+# uses 0.016. The previous 1.6e-7 was a speed^2-domain coefficient applied to
+# forces -- ~5 orders of magnitude too small, leaving yaw uncontrolled.
+cd  = 0.017
 dx = [0.225, 0.225, 0.225, 0.225]          # [m] Distance from center to rotors
 dy = [0.225, 0.225, 0.225, 0.225]          # [m] Distance from center to rotors
 
@@ -21,7 +26,10 @@ thrust_to_weight = 1.75
 
 max_force_per_motor = (g * m / 4.0) * thrust_to_weight
 
-u_hover = max_force_per_motor
+# Hover equilibrium thrust per motor: the input cost must be centred here,
+# NOT at max_force_per_motor, otherwise the R term rewards flying at full
+# throttle and biases every solution toward the upper input bound.
+u_hover_per_motor = m * g / 4.0
 
 #cost weights
 Q_diag = [40, 40, 50, 1.0,  0.043, 0.043, 0.043,2.0, 2.0, 2.0, 1.0, 1.0, 1.0]
@@ -74,7 +82,7 @@ def quadcopter_dynamics(x, u):
     return vertcat(dpx, dpy, dpz, dqw, dqx, dqy, dqz, dvx, dvy, dvz, dwx, dwy, dwz)
 
 
-def export_active_subspace_quadcopter_model(nv: int) -> AcadosModel:
+def export_active_subspace_quadcopter_model(nv: int, u_cost_center: float = None, name_suffix: str = ""):
 
     """Quadcopter model with horizon-level active-subspace variables.
 
@@ -84,7 +92,10 @@ def export_active_subspace_quadcopter_model(nv: int) -> AcadosModel:
     stage parameters: u = T1_stage @ V + mu * T2_stage@w_tilda.
     """
 
-    model_name = f"Quadcopter_active_subspace_nv{nv}"
+    if u_cost_center is None:
+        u_cost_center = u_hover_per_motor
+
+    model_name = f"Quadcopter_active_subspace_nv{nv}{name_suffix}"
 
     nx_aug = nx + nv + 1
     x = SX.sym("x", nx_aug)
@@ -124,12 +135,13 @@ def export_active_subspace_quadcopter_model(nv: int) -> AcadosModel:
 
     r_mat = R_weight * SX.eye(nu_phy)
 
-    u_hover = vertcat(([max_force_per_motor] * nu_phy))
+    u_hover = vertcat(*([u_cost_center] * nu_phy))
 
     tracking_error = x_quad - ref
 
     input_error = u_real - u_hover
 
+    from acados_template import AcadosModel
     model = AcadosModel()
 
     model.f_impl_expr = f_impl
@@ -156,8 +168,10 @@ def export_active_subspace_quadcopter_model(nv: int) -> AcadosModel:
     return model
 
 
-def export_Quadcopter_ode_model() -> AcadosModel:
-    
+def export_Quadcopter_ode_model():
+
+    from acados_template import AcadosModel
+
     model_name = 'Quadcopter_ode'
 
     x = SX.sym("x", nx)

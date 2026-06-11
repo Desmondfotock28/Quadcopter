@@ -31,7 +31,7 @@ def plot_xyz_subplots(t, x_pred, output_path=None, show=True):
     t = np.array(t)
     xr = np.sin(np.pi * t / 10)
     yr = np.cos(np.pi * t / 10) - 1.0
-    zr = np.sin(np.pi * t / 10) + t
+    zr = np.sin(np.pi * t / 10) + t + 1.0
 
     fig, axs = plt.subplots(3, 1, figsize=(8, 10), sharex=True)
     for axis, values, ref, label in [
