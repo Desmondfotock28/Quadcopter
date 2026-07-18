@@ -111,6 +111,9 @@ End-to-end autonomous quadcopter development demonstrating the complete robotics
 ├── nmpc_px4_ros2_ws/          # ROS2 workspace
 │   └── src/nmpc_px4_ros2/         # NMPC flight mode node (C++)
 │
+├── ros2_realsense_ws/         # ROS2 workspace for RealSense D415 vision offboard control
+│   └── src/my_drone_vision/       # RGB/depth target detection and PX4 offboard controller
+│
 ├── model/                     # Custom PX4 Gazebo models
 ├── drone_control_ros2_ws      # Hardware deployment code
     └──src/drone_control/      
@@ -146,7 +149,8 @@ Detailed technical documentation in the [Wiki](https://github.com/Desmondfotock2
 - [x] NMPC algorithm development and validation
 - [x] Gazebo SITL simulation with PX4
 - [x] Hardware integration (Pixhawk + RPi4B)
-- [ ] Intel RealSense integration (in progress)
+- [x] Intel RealSense D415 simulation integration
+- [x] Vision-based PX4 offboard alignment controller
 - [ ] SLAM for GPS-denied navigation (planned)
 
 ---
