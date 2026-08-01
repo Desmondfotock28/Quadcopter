@@ -19,6 +19,7 @@
 #include <nav_msgs/msg/path.hpp>
 #include <nav_msgs/msg/odometry.hpp>
 #include "px4_msgs/msg/vehicle_odometry.hpp"
+#include "px4_msgs/msg/vehicle_status.hpp"
 #include "nmpc_px4_ros2_interfaces/msg/state_trajectory.hpp"
 
 #include "acados_c/ocp_nlp_interface.h"
@@ -45,6 +46,9 @@ public:
     _node.declare_parameter("thrust_weight_ratio", 2.85);
     _node.declare_parameter("thrust_coefficient", 1.28627e-05);
     _node.declare_parameter("max_omega", 900.0);
+    _node.declare_parameter("hardware_safety_gate", false);
+    _node.declare_parameter("require_safety_switch", false);
+    _node.declare_parameter("require_preflight_checks", false);
 
     uhov = _node.get_parameter("mass").as_double() * _node.get_parameter("gravity").as_double() / NU;
 
@@ -67,6 +71,19 @@ public:
         _vehicle_ang_vel_frd << msg->angular_velocity[0],
                                msg->angular_velocity[1],
                                msg->angular_velocity[2];
+    }
+ );
+
+    _vehicle_status_sub = _node.create_subscription<px4_msgs::msg::VehicleStatus>(
+    "/fmu/out/vehicle_status",
+    rclcpp::SensorDataQoS(),
+    [this](const px4_msgs::msg::VehicleStatus::SharedPtr msg)
+    {
+        _have_vehicle_status = true;
+        _safety_button_available = msg->safety_button_available;
+        _safety_off = msg->safety_off;
+        _preflight_checks_pass = msg->pre_flight_checks_pass;
+        _failsafe = msg->failsafe;
     }
  );
 
@@ -97,6 +114,19 @@ public:
 
   void updateSetpoint(float dt_s) override
   {
+    (void)dt_s;
+
+    if (ref_traj.empty() || ref_traj_len <= N) {
+      RCLCPP_WARN_THROTTLE(
+        _node.get_logger(), *_node.get_clock(), 2000,
+        "No valid reference trajectory available. NMPC actuator setpoint not published.");
+      return;
+    }
+
+    if (!_hardwareSafetyGateReady()) {
+      return;
+    }
+
     RCLCPP_INFO(_node.get_logger(), "updateSetpoint: ref_traj_len = %d, iter = %d", ref_traj_len, iter);
      
     Eigen::Vector3f pos_ned = _vehicle_local_position_velocity->positionNed();
@@ -189,6 +219,7 @@ private:
   rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr _optimal_traj_pub;
   rclcpp::Subscription<nmpc_px4_ros2_interfaces::msg::StateTrajectory>::SharedPtr _ref_traj_sub;
   rclcpp::Subscription<px4_msgs::msg::VehicleOdometry>::SharedPtr _vehicle_odometry_sub;
+  rclcpp::Subscription<px4_msgs::msg::VehicleStatus>::SharedPtr _vehicle_status_sub;
 
   std::shared_ptr<px4_ros2::DirectActuatorsSetpointType> _thrust_setpoint;
   std::shared_ptr<px4_ros2::OdometryLocalPosition> _vehicle_local_position_velocity;
@@ -210,9 +241,14 @@ private:
   double prev_u[NU];
   double xtraj[NX * (N+1)];
   double utraj[NU * N];
-  int ref_traj_len;
+  int ref_traj_len = 0;
   std::vector<std::vector<double>> ref_traj;
   bool holding = false;
+  bool _have_vehicle_status = false;
+  bool _safety_button_available = false;
+  bool _safety_off = false;
+  bool _preflight_checks_pass = false;
+  bool _failsafe = false;
 
   double uhov;
 
@@ -229,6 +265,7 @@ private:
   {
     
     ref_traj_len = msg.len.data;
+    ref_traj.clear();
     RCLCPP_INFO(_node.get_logger(), "Received new trajectory, ref_traj_len = %d", ref_traj_len);
 
     for (int i = 0; i < ref_traj_len; i++)
@@ -258,6 +295,52 @@ private:
   float _thrust2omega(float thrust) const
   {
     return sqrt(thrust/_node.get_parameter("thrust_coefficient").as_double())/_node.get_parameter("max_omega").as_double();
+  }
+
+  bool _hardwareSafetyGateReady()
+  {
+    if (!_node.get_parameter("hardware_safety_gate").as_bool()) {
+      return true;
+    }
+
+    if (!_have_vehicle_status) {
+      RCLCPP_WARN_THROTTLE(
+        _node.get_logger(), *_node.get_clock(), 2000,
+        "Hardware safety gate active: waiting for /fmu/out/vehicle_status.");
+      return false;
+    }
+
+    if (_failsafe) {
+      RCLCPP_ERROR_THROTTLE(
+        _node.get_logger(), *_node.get_clock(), 2000,
+        "Hardware safety gate active: PX4 reports failsafe. NMPC actuator setpoint not published.");
+      return false;
+    }
+
+    if (_node.get_parameter("require_preflight_checks").as_bool() && !_preflight_checks_pass) {
+      RCLCPP_WARN_THROTTLE(
+        _node.get_logger(), *_node.get_clock(), 2000,
+        "Hardware safety gate active: PX4 preflight checks have not passed.");
+      return false;
+    }
+
+    if (_node.get_parameter("require_safety_switch").as_bool()) {
+      if (!_safety_button_available) {
+        RCLCPP_WARN_THROTTLE(
+          _node.get_logger(), *_node.get_clock(), 2000,
+          "Hardware safety gate active: Pixhawk safety button is not reported available.");
+        return false;
+      }
+
+      if (!_safety_off) {
+        RCLCPP_WARN_THROTTLE(
+          _node.get_logger(), *_node.get_clock(), 2000,
+          "Hardware safety gate active: safety switch is still locked; actuator setpoint not published.");
+        return false;
+      }
+    }
+
+    return true;
   }
 
   void _initOCP(Eigen::Vector3f pos_enu, Eigen::Quaternionf quat_enu, Eigen::Vector3f lin_vel_enu, Eigen::Vector3f ang_vel_flu)
